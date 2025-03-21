@@ -29,6 +29,12 @@ class MoviesDatasourceImplementation extends MoviesDatasource {
       final List<Movie> movies =
           movieDbResponseMovies
               .where((movie) => movie.posterPath != 'no-poster')
+              .where(
+                (movie) =>
+                    (movie.backdropPath != 'no-backdrop') &&
+                    (movie.backdropPath != null) &&
+                    (movie.backdropPath!.trim().isNotEmpty),
+              )
               .map((movie) => MovieMapper.movieDbToEntity(movie))
               .toList();
 

@@ -6,9 +6,9 @@ class MovieMapper {
     return Movie(
       adult: movieDb.adult,
       backdropPath:
-          movieDb.backdropPath != ''
-              ? 'https://image.tmdb.org/t/p/w500${movieDb.backdropPath}'
-              : 'https://demofree.sirv.com/nope-not-here.jpg',
+          movieDb.backdropPath == ''
+              ? 'no-backdrop'
+              : 'https://image.tmdb.org/t/p/w500${movieDb.backdropPath}',
       genreIds: movieDb.genreIds.map((e) => e.toString()).toList(),
       id: movieDb.id,
       originalLanguage: movieDb.originalLanguage,
