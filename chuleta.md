@@ -49,7 +49,7 @@ En ese archivos vamos a tener muchas lineas como esta:
         )
     
 
-### Comenzando a urilizar el router
+### Comenzando a utilizar el router
 
 En este punto ya en el main.dart vamos a hacer uso de router, por lo que la clase Material no va a utilizar un body pues ya router sabe cual es la primera ruta que se va a mostrar
 
