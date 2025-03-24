@@ -2,8 +2,9 @@ import 'package:animate_do/animate_do.dart';
 import 'package:cinemapedia/config/helpers/human_formats.dart';
 import 'package:cinemapedia/domain/entities/movie.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
-class MoviesHorizontalListview extends StatelessWidget {
+class MoviesHorizontalListview extends StatefulWidget {
   final List<Movie> movies;
   final String? title;
   final String? subtitle;
@@ -18,20 +19,49 @@ class MoviesHorizontalListview extends StatelessWidget {
   });
 
   @override
+  State<MoviesHorizontalListview> createState() =>
+      _MoviesHorizontalListviewState();
+}
+
+class _MoviesHorizontalListviewState extends State<MoviesHorizontalListview> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    _scrollController.addListener(() {
+      if (widget.loadNextPage == null) return;
+
+      if (_scrollController.position.pixels + 200 >=
+          _scrollController.position.maxScrollExtent) {
+        widget.loadNextPage?.call();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: 350,
       child: Column(
         children: [
-          if (title != null || subtitle != null)
-            _Title(title: title, subtitle: subtitle),
+          if (widget.title != null || widget.subtitle != null)
+            _Title(title: widget.title, subtitle: widget.subtitle),
           Expanded(
             child: ListView.builder(
-              itemCount: movies.length,
+              controller: _scrollController,
+              itemCount: widget.movies.length,
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
               itemBuilder: (context, index) {
-                return _Slide(movie: movies[index]);
+                return FadeInRight(child: _Slide(movie: widget.movies[index]));
               },
             ),
           ),
@@ -75,7 +105,8 @@ class _Slide extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textStyles = Theme.of(context).textTheme;
-
+    final double popularity =
+        double.tryParse(movie.popularity.toString()) ?? 0.0;
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8),
       child: Column(
@@ -102,7 +133,10 @@ class _Slide extends StatelessWidget {
                         ),
                       );
                     }
-                    return FadeIn(child: child);
+                    return GestureDetector(
+                      onTap: () => context.push('/movie/${movie.id}'),
+                      child: FadeIn(child: child),
+                    );
                   },
                 ),
               ),
@@ -137,7 +171,7 @@ class _Slide extends StatelessWidget {
                 ),
                 Spacer(),
                 Text(
-                  HumanFormats.humanReadbleNumber(movie.popularity.toDouble()),
+                  HumanFormats.humanReadbleNumber(popularity),
                   style: textStyles.bodySmall,
                 ),
               ],

@@ -6,6 +6,6 @@ part 'movies_slideshow_provider.g.dart';
 
 @riverpod
 List<Movie> slideshowMovies(ref) {
-  final nowPlayingMovies = ref.watch(moviesNotifierProvider);
+  final nowPlayingMovies = ref.watch(nowPlayingMoviesNotifierProvider);
   return (nowPlayingMovies.isEmpty) ? [] : nowPlayingMovies.sublist(0, 8);
 }
