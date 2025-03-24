@@ -20,6 +20,7 @@ class ActorDatasourceImplementation extends ActorsDatasource {
     final creditsResponse = CreditsResponse.fromJson(json);
     final creaditsResponseActor = creditsResponse.cast;
 
+    // final actors = ActorMapper.castToEntity(creaditsResponseActor);
     final List<Actor> actors =
         creaditsResponseActor
             .map((actor) => ActorMapper.castToEntity(actor))
@@ -32,6 +33,9 @@ class ActorDatasourceImplementation extends ActorsDatasource {
   Future<List<Actor>> getActorsByMovie(String movieId) async {
     try {
       final response = await dio.get('/movie/$movieId/credits');
+      if (response.statusCode != 200) {
+        throw Exception('Actos of movie with id: $movieId not found');
+      }
       return _jsonToActor(response.data);
     } catch (e) {
       return [];

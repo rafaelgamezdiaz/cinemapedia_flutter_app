@@ -8,7 +8,7 @@ class ActorMapper {
     profilePath:
         cast.profilePath != null
             ? 'https://image.tmdb.org/t/p/w500${cast.profilePath}'
-            : 'https://upload.wikimedia.org/wikipedia/commons/5/54/Profile_photo_placeholder_-_smooth_edges.svg',
+            : 'no-photo',
     character: cast.character,
   );
 }
