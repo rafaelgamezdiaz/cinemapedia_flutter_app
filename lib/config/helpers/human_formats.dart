@@ -1,7 +1,7 @@
 import 'package:intl/intl.dart';
 
 class HumanFormats {
-  static String humanReadbleNumber(double number) {
+  static String humanReadbleNumber(double number, {int decimalDigits = 1}) {
     // Forzamos el uso del locale 'en' para asegurar las abreviaturas K, M, etc.
     final formatter = NumberFormat.compactCurrency(
       locale: 'en', // Asegura que use el formato en inglés

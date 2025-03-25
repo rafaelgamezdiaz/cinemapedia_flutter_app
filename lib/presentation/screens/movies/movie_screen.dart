@@ -56,7 +56,7 @@ class _CustomSliverAppBar extends StatelessWidget {
       automaticallyImplyLeading: false,
       actions: [
         IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
           onPressed: () {
             context.pop();
           },
