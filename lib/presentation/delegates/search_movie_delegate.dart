@@ -1,23 +1,53 @@
+import 'dart:async';
 import 'package:animate_do/animate_do.dart';
 import 'package:cinemapedia/config/helpers/human_formats.dart';
 import 'package:cinemapedia/domain/entities/movie.dart';
+import 'package:cinemapedia/providers/search/search_movies_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 typedef SearchMovieCallback = Future<List<Movie>> Function(String query);
 
 class SearchMovieDelegate extends SearchDelegate<Movie?> {
   final SearchMovieCallback searchMovie;
+  final String initialQuery;
 
-  SearchMovieDelegate({
-    // super.searchFieldLabel,
-    // super.searchFieldStyle,
-    // super.searchFieldDecorationTheme,
-    // super.keyboardType,
-    // super.textInputAction,
-    // super.autocorrect,
-    // super.enableSuggestions,
-    required this.searchMovie,
-  });
+  // Utilizamos un StreamController ya que queremos implementar un StreamBuilder, pues con un FutureBuilder
+  // se estarían lanzado peticiones por cada letra que se presiones y queremos reducir el numero de peticiones a la API
+  StreamController<List<Movie>> debouncedMovies =
+      StreamController.broadcast(); // Se utiliza broadcast para que varios widgets puedan escuchar el stream
+  Timer? _debounceTimer;
+
+  SearchMovieDelegate({required this.searchMovie, this.initialQuery = ''}) {
+    query = initialQuery;
+
+    // Lanza la primera búsqueda si initialQuery no está vacío
+    // Esto poblará el stream inicial si es necesario.
+    // Nota: _onQueryChanged ya maneja el caso de query vacío.
+    _onQueryChanged(query);
+  }
+
+  void clearStreams() {
+    debouncedMovies.close();
+  }
+
+  void _onQueryChanged(String query) {
+    // Si el texto está vacío, cancelamos la búsqueda y limpiamos la lista
+    if (query.isEmpty) {
+      debouncedMovies.add([]);
+      _debounceTimer?.cancel();
+      return;
+    }
+
+    _debounceTimer
+        ?.cancel(); // Cada vez que la persona escribe el Timer se reinicia
+
+    // Cuando la persona deja de escribir es que se lanza la petición a la API
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
+      final movies = await searchMovie(query);
+      debouncedMovies.add(movies);
+    });
+  }
 
   @override
   get searchFieldLabel => 'Buscar película';
@@ -30,7 +60,20 @@ class SearchMovieDelegate extends SearchDelegate<Movie?> {
         child: IconButton(
           icon: Icon(Icons.clear),
           onPressed: () {
+            // 1. Limpia el query interno del delegate
             query = '';
+
+            // 2. Actualiza el provider global (opcional pero bueno si quieres que se borre globalmente)
+            ProviderScope.containerOf(
+              context,
+              listen: false,
+            ).read(searchQueryProvider.notifier).updateSearchQuery('');
+
+            // 3. Llama a _onQueryChanged con el query vacío.
+            //    Esto asegurará que el stream reciba una lista vacía
+            //    y el debounce se maneje correctamente si el usuario
+            //    vuelve a escribir rápido.
+            _onQueryChanged('');
           },
         ),
       ),
@@ -42,6 +85,7 @@ class SearchMovieDelegate extends SearchDelegate<Movie?> {
     return IconButton(
       icon: Icon(Icons.arrow_back_ios_new_rounded),
       onPressed: () {
+        clearStreams();
         close(context, null);
       },
     );
@@ -54,15 +98,36 @@ class SearchMovieDelegate extends SearchDelegate<Movie?> {
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    return FutureBuilder(
-      future: searchMovie(query),
+    // Llama a _onQueryChanged siempre que se reconstruyan las sugerencias.
+    // El debounce interno se encargará de gestionar las llamadas API.
+    _onQueryChanged(query);
+
+    // El StreamBuilder se encarga de mostrar los resultados actuales del stream
+    return StreamBuilder(
+      // Mejor que un FutureBuilder, ya que un FutureBuilder lanza peticiones por cada tecla pulsada
+      stream: debouncedMovies.stream,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
+        // Si el query está vacío y no hay datos (o están vacíos), mostramos un contenedor vacio.
+        if (query.isEmpty && (!snapshot.hasData || snapshot.data!.isEmpty)) {
+          return Container();
+        }
+
+        // Muestra el indicador solo si estamos esperando y hay una búsqueda activa
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            query.isNotEmpty) {
+          return const Center(child: CircularProgressIndicator());
         }
 
         if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
+        }
+
+        // Si no hay datos o la lista está vacía (y el query no está vacío), ndica que no hay resultados.
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          if (query.isEmpty) return Container(); // Ya manejado arriba
+          return Center(
+            child: Text('No se encontraron resultados para "$query"'),
+          );
         }
 
         final List<Movie> movies = snapshot.data as List<Movie>;
@@ -71,7 +136,22 @@ class SearchMovieDelegate extends SearchDelegate<Movie?> {
           itemCount: movies.length,
           itemBuilder: (context, index) {
             final movie = movies[index];
-            return _MovieItem(movie: movie, onMovieSelected: close);
+            return _MovieItem(
+              movie: movie,
+              onMovieSelected: (context, movie) {
+                // Guardamos el query actual ANTES de cerrar
+                // Es buena idea hacerlo aquí también por si acaso.
+                final container = ProviderScope.containerOf(
+                  context,
+                  listen: false,
+                );
+                container
+                    .read(searchQueryProvider.notifier)
+                    .updateSearchQuery(query);
+                clearStreams();
+                close(context, movie);
+              },
+            );
           },
           separatorBuilder: (context, index) {
             return Divider(
