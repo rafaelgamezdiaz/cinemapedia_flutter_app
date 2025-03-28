@@ -12,10 +12,51 @@ class SearchMovieDelegate extends SearchDelegate<Movie?> {
   final SearchMovieCallback searchMovie;
   final String initialQuery;
 
+  @override
+  get searchFieldLabel => 'Buscar película';
+
+  // @override
+  // TextStyle get searchFieldStyle =>
+  //     TextStyle(color: Colors.white, fontSize: 18);
+
+  // @override
+  // ThemeData appBarTheme(BuildContext context) {
+  //   final ThemeData theme = Theme.of(context);
+  //   return theme.copyWith(
+  //     // Personaliza colores, etc. del AppBar de búsqueda
+  //     appBarTheme: AppBarTheme(
+  //       backgroundColor: Colors.black,
+  //       iconTheme: IconThemeData(
+  //         color: Colors.white,
+  //       ), // Color del botón de regreso (leading)
+  //       actionsIconTheme: IconThemeData(
+  //         color: Colors.white,
+  //       ), // Color de otros íconos en el AppBar
+  //     ),
+  //     // Personaliza el estilo del texto del campo de búsqueda
+  //     inputDecorationTheme:
+  //         searchFieldDecorationTheme ??
+  //         InputDecorationTheme(
+  //           hintStyle: TextStyle(
+  //             color: Colors.white70,
+  //           ), // Color del texto de sugerencia
+  //           fillColor: Colors.black87, // Color de fondo del campo de búsqueda
+  //           filled: true,
+  //           border: InputBorder.none, // Sin bordes visibles
+  //           contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+  //           suffixIconColor:
+  //               Colors.white, // Color del botón de limpiar (ícono "x")
+  //         ),
+  //     // Asegúrate de que el texto y los iconos sean visibles
+  //     primaryColor: Colors.white, // Color para iconos y texto del AppBar
+  //   );
+  // }
+
   // Utilizamos un StreamController ya que queremos implementar un StreamBuilder, pues con un FutureBuilder
   // se estarían lanzado peticiones por cada letra que se presiones y queremos reducir el numero de peticiones a la API
   StreamController<List<Movie>> debouncedMovies =
       StreamController.broadcast(); // Se utiliza broadcast para que varios widgets puedan escuchar el stream
+
   Timer? _debounceTimer;
 
   SearchMovieDelegate({required this.searchMovie, this.initialQuery = ''}) {
@@ -34,13 +75,16 @@ class SearchMovieDelegate extends SearchDelegate<Movie?> {
   void _onQueryChanged(String query) {
     // Si el texto está vacío, cancelamos la búsqueda y limpiamos la lista
     if (query.isEmpty) {
-      debouncedMovies.add([]);
-      _debounceTimer?.cancel();
+      debouncedMovies.add(
+        [],
+      ); //  Inmediatamente añade una lista vacía al stream builder
+      _debounceTimer
+          ?.cancel(); // Cancela cualquier temporizador pendiente. No queremos realizar una búsqueda si el campo está vacío.
       return;
     }
 
     _debounceTimer
-        ?.cancel(); // Cada vez que la persona escribe el Timer se reinicia
+        ?.cancel(); // Cada vez que la persona escribe el Timer (de 500 milisegundos definidos abajo) se reinicia. Si ya existía un temporizador en ejecución (porque el usuario escribió algo hace menos de 500ms), se cancela. Esto evita que se disparen búsquedas por cada letra tecleada rápidamente.
 
     // Cuando la persona deja de escribir es que se lanza la petición a la API
     _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
@@ -48,9 +92,6 @@ class SearchMovieDelegate extends SearchDelegate<Movie?> {
       debouncedMovies.add(movies);
     });
   }
-
-  @override
-  get searchFieldLabel => 'Buscar película';
 
   @override
   List<Widget> buildActions(BuildContext context) {
@@ -93,7 +134,8 @@ class SearchMovieDelegate extends SearchDelegate<Movie?> {
 
   @override
   Widget buildResults(BuildContext context) {
-    return Container();
+    _onQueryChanged(query);
+    return buildResultsAndSuggestions();
   }
 
   @override
@@ -103,6 +145,10 @@ class SearchMovieDelegate extends SearchDelegate<Movie?> {
     _onQueryChanged(query);
 
     // El StreamBuilder se encarga de mostrar los resultados actuales del stream
+    return buildResultsAndSuggestions();
+  }
+
+  Widget buildResultsAndSuggestions() {
     return StreamBuilder(
       // Mejor que un FutureBuilder, ya que un FutureBuilder lanza peticiones por cada tecla pulsada
       stream: debouncedMovies.stream,

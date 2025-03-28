@@ -1,3 +1,4 @@
+import 'package:cinemapedia/domain/entities/movie.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'search_movies_provider.g.dart';
@@ -9,6 +10,15 @@ class SearchQuery extends _$SearchQuery {
 
   void updateSearchQuery(String query) {
     state = query;
-    print("searchQuery actualizado a: $state");
+  }
+}
+
+@riverpod
+class SearchedMovies extends _$SearchedMovies {
+  @override
+  List<Movie> build() => [];
+
+  void updateLastSearchedMovies(List<Movie> movies) {
+    state = movies; // state = [...state, query];
   }
 }

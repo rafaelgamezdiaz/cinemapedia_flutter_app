@@ -105,7 +105,29 @@ class MoviesDatasourceImplementation extends MoviesDatasource {
         '/search/movie',
         queryParameters: {'query': query},
       );
-      return _jsonToMovies(response.data);
+      // return _jsonToMovies(response.data);
+
+      // 1. Obtener la lista de películas de la respuesta
+      final List<Movie> movies = _jsonToMovies(response.data);
+
+      // 2. Ordenar la lista localmente por fecha de lanzamiento descendente
+      movies.sort((a, b) {
+        // Manejar casos donde la fecha pueda ser nula o inválida
+        final dateA = a.releaseDate;
+        final dateB = b.releaseDate;
+
+        if (dateB == null) {
+          return -1; // Poner los nulos al final (o al principio si prefieres)
+        }
+
+        if (dateA == null) return 1; // Poner los nulos al final
+
+        // Comparar las fechas válidas en orden descendente
+        return dateB.compareTo(dateA);
+      });
+
+      // 3. Devolver la lista ordenada
+      return movies;
     } catch (e) {
       return [];
     }

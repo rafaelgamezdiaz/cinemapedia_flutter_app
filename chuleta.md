@@ -148,3 +148,11 @@ Creamos /domain/repositories/movies_repository.dart
 Esta es una clase abstracta que no tiene implementación. Si nos fijamos esta clase se ve igual a la de datasource. Pero la de datasource es la que definirá los origenes de datos mientras que los repositorios son los que llaman al datasouce. Es decir el datasource no lo llamaremos de manera directa, sinó a través de los repositorios.
 
 Es decir los repositorios permitirá cambiar facilmente cual es la fuente de datos que vamos a utilizar, cambiano un datasource por otro, sin tener que hacer cambios en otras partes del código.
+
+
+
+# Riverpod
+
+Para la generacion de providers riverpod automaticamente utilizando @riverpod ejecutamos este comando en consola
+
+    dart run build_runner watch
