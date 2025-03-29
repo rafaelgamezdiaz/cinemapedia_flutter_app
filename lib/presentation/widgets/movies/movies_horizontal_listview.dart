@@ -119,28 +119,34 @@ class _Slide extends StatelessWidget {
               aspectRatio: 2 / 3,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(20),
-                child: Image.network(
-                  movie.posterPath,
-                  width: 150,
-                  height: 225,
-                  fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress != null) {
-                      return const Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: Center(
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      );
-                    }
-                    return GestureDetector(
-                      onTap: () {
-                        context.push('/movie/${movie.id}');
-                      },
-                      child: FadeIn(child: child),
-                    );
-                  },
-                ),
+                child:
+                    (movie.posterPath != null &&
+                            movie.posterPath != 'no-poster')
+                        ? Image.network(
+                          movie.posterPath!,
+                          width: 150,
+                          height: 225,
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress != null) {
+                              return const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                ),
+                              );
+                            }
+                            return GestureDetector(
+                              onTap: () {
+                                context.push('/movie/${movie.id}');
+                              },
+                              child: FadeIn(child: child),
+                            );
+                          },
+                        )
+                        : SizedBox.expand(),
               ),
             ),
           ),

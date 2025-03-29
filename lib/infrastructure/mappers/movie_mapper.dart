@@ -48,8 +48,8 @@ class MovieMapper {
       releaseDate: movieDb.releaseDate,
       title: movieDb.title,
       video: movieDb.video,
-      voteAverage: movieDb.voteAverage,
-      voteCount: movieDb.voteCount,
+      voteAverage: movieDb.voteAverage ?? 0.0,
+      voteCount: movieDb.voteCount ?? 0,
     );
   }
 }

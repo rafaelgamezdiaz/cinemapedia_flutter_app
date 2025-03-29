@@ -19,10 +19,13 @@ class SearchedMovies extends _$SearchedMovies {
   @override
   List<Movie> build() => [];
 
-  Future<List<Movie>> searchMoviesByQuery(String query) async {
+  Future<List<Movie>> searchMoviesByQuery(String query, String orderBy) async {
     final moviesRepositoryNotifier = ref.read(moviesRepositoryNotifierProvider);
 
-    List<Movie> movies = await moviesRepositoryNotifier.searchMovies(query);
+    List<Movie> movies = await moviesRepositoryNotifier.searchMovies(
+      query,
+      orderBy,
+    );
     state = movies;
     return movies;
   }

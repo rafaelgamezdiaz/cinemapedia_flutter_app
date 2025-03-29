@@ -89,17 +89,50 @@ class MoviesDatasourceImplementation extends MoviesDatasource {
 
   @override
   Future<Movie> getMovieDetail(String movieId) async {
-    final response = await dio.get('/movie/$movieId');
-    if (response.statusCode != 200) {
-      throw Exception('Movie with id: $movieId not found');
+    try {
+      // Añadir try-catch para manejo de errores de red/status code
+      final response = await dio.get('/movie/$movieId');
+
+      // Verifica el status code primero
+      if (response.statusCode != 200) {
+        print(
+          'Error en respuesta para $movieId: Status Code ${response.statusCode}',
+        );
+        print(
+          'Response Body: ${response.data}',
+        ); // Imprime aunque falle el status
+        throw Exception(
+          'Movie with id: $movieId not found (Status: ${response.statusCode})',
+        );
+      }
+
+      // --- ¡IMPRIME AQUÍ! ---
+      print('--- RAW JSON Response for Movie ID: $movieId ---');
+      print(response.data); // Imprime el mapa completo
+      print('-----------------------------------------------');
+      // ---------------------
+
+      // Ahora intenta parsear
+      final movieDB = MovieDetails.fromJson(response.data);
+      final movie = MovieMapper.movieDbDetailToEntity(movieDB);
+      return movie;
+    } catch (e) {
+      // Captura otros errores (dio, parsing, etc.)
+      print('Error fetching/parsing movie detail for $movieId: $e');
+      // Decide si quieres relanzar el error o devolver un valor por defecto/error
+      throw Exception('Failed to get movie detail for $movieId: $e');
     }
-    final movieDB = MovieDetails.fromJson(response.data);
-    final movie = MovieMapper.movieDbDetailToEntity(movieDB);
-    return movie;
+    // final response = await dio.get('/movie/$movieId');
+    // if (response.statusCode != 200) {
+    //   throw Exception('Movie with id: $movieId not found');
+    // }
+    // final movieDB = MovieDetails.fromJson(response.data);
+    // final movie = MovieMapper.movieDbDetailToEntity(movieDB);
+    // return movie;
   }
 
   @override
-  Future<List<Movie>> searchMovies(String query) async {
+  Future<List<Movie>> searchMovies(String query, String orderBy) async {
     try {
       if (query.isEmpty) return [];
 
@@ -112,21 +145,23 @@ class MoviesDatasourceImplementation extends MoviesDatasource {
       // 1. Obtener la lista de películas de la respuesta
       final List<Movie> movies = _jsonToMovies(response.data);
 
-      // 2. Ordenar la lista localmente por fecha de lanzamiento descendente
-      movies.sort((a, b) {
-        // Manejar casos donde la fecha pueda ser nula o inválida
-        final dateA = a.releaseDate;
-        final dateB = b.releaseDate;
+      if (orderBy == 'fecha') {
+        // 2. Ordenar la lista localmente por fecha de lanzamiento descendente
+        movies.sort((a, b) {
+          // Manejar casos donde la fecha pueda ser nula o inválida
+          final dateA = a.releaseDate;
+          final dateB = b.releaseDate;
 
-        if (dateB == null) {
-          return -1; // Poner los nulos al final (o al principio si prefieres)
-        }
+          if (dateB == null) {
+            return -1; // Poner los nulos al final (o al principio si prefieres)
+          }
 
-        if (dateA == null) return 1; // Poner los nulos al final
+          if (dateA == null) return 1; // Poner los nulos al final
 
-        // Comparar las fechas válidas en orden descendente
-        return dateB.compareTo(dateA);
-      });
+          // Comparar las fechas válidas en orden descendente
+          return dateB.compareTo(dateA);
+        });
+      }
 
       // 3. Devolver la lista ordenada
       return movies;

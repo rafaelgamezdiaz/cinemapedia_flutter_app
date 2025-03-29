@@ -6,15 +6,21 @@ import 'package:cinemapedia/providers/search/search_movies_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-typedef SearchMovieCallback = Future<List<Movie>> Function(String query);
+typedef SearchMovieCallback =
+    Future<List<Movie>> Function(String query, String orderBy);
 
 class SearchMovieDelegate extends SearchDelegate<Movie?> {
   final SearchMovieCallback searchMovie;
   final String initialQuery;
   final List<Movie> initialMovies;
 
+  // --- Usar ValueNotifier para el estado del orden ---
+  late final ValueNotifier<String> orderByNotifier;
+
   final StreamController<List<Movie>> debouncedMovies =
       StreamController.broadcast();
+  final StreamController<bool> isLoadingStream = StreamController.broadcast();
+
   Timer? _debounceTimer;
   final String _originalInitialQuery;
 
@@ -28,8 +34,12 @@ class SearchMovieDelegate extends SearchDelegate<Movie?> {
     required this.searchMovie,
     required this.initialMovies,
     this.initialQuery = '',
+    String initialOrderBy = 'relevancia',
   }) : _originalInitialQuery = initialQuery {
     query = initialQuery;
+
+    // --- Inicializar el ValueNotifier ---
+    orderByNotifier = ValueNotifier(initialOrderBy);
 
     // ¡IMPORTANTE! Añade los datos iniciales al stream INMEDIATAMENTE.
     // Esto es crucial para que el StreamBuilder los tenga lo antes posible.
@@ -43,12 +53,27 @@ class SearchMovieDelegate extends SearchDelegate<Movie?> {
     _queryManuallyChanged = false;
   }
 
+  void _updateSortOrder() {
+    // --- Actualizar el ValueNotifier ---
+    if (orderByNotifier.value == 'relevancia') {
+      orderByNotifier.value = 'fecha';
+    } else {
+      orderByNotifier.value = 'relevancia';
+    }
+    // ---------------------------------
+    // Relanzar la búsqueda con el nuevo orden
+    _handleQueryChange(query);
+  }
+
   void clearStreams() {
     _debounceTimer?.cancel();
     debouncedMovies.close();
+    orderByNotifier.dispose();
   }
 
   void _handleQueryChange(String currentQuery) {
+    isLoadingStream.add(true);
+
     _debounceTimer?.cancel();
     if (debouncedMovies.isClosed) return;
 
@@ -63,8 +88,13 @@ class SearchMovieDelegate extends SearchDelegate<Movie?> {
       if (debouncedMovies.isClosed) return;
 
       try {
-        final movies = await searchMovie(currentQuery);
-        if (!debouncedMovies.isClosed) debouncedMovies.add(movies);
+        final currentOrderBy = orderByNotifier.value;
+        final movies = await searchMovie(currentQuery, currentOrderBy);
+        if (!debouncedMovies.isClosed) {
+          debouncedMovies.add(movies);
+          isLoadingStream.add(false); // Detener el loading
+        }
+        ;
       } catch (e) {
         if (!debouncedMovies.isClosed) debouncedMovies.addError(e);
       }
@@ -91,27 +121,85 @@ class SearchMovieDelegate extends SearchDelegate<Movie?> {
   @override
   List<Widget> buildActions(BuildContext context) {
     return [
+      // --- Botón de Ordenar con ValueListenableBuilder ---
       if (query.isNotEmpty)
         FadeIn(
           animate: true,
           duration: const Duration(milliseconds: 200),
-          child: IconButton(
-            icon: const Icon(Icons.clear),
-            onPressed: () {
-              query =
-                  ''; // Esto llamará al setter y actualizará _queryManuallyChanged si es necesario
-              ProviderScope.containerOf(
-                context,
-                listen: false,
-              ).read(searchQueryProvider.notifier).updateSearchQuery('');
-              _handleQueryChange(''); // Limpia el stream explícitamente
-              // Forzar rebuild de sugerencias
-              showSuggestions(context);
+          child: ValueListenableBuilder<String>(
+            valueListenable: orderByNotifier,
+            builder: (context, currentOrderBy, _) {
+              // El builder se ejecuta cada vez que orderByNotifier cambia
+              final sortIcon =
+                  currentOrderBy == 'relevancia'
+                      ? Icons.local_fire_department_outlined
+                      : Icons.calendar_today_outlined;
+              final tooltipMessage =
+                  currentOrderBy == 'relevancia'
+                      ? 'Ordenar por fecha'
+                      : 'Ordenar por relevancia';
+
+              return Tooltip(
+                message: tooltipMessage,
+                child: IconButton(
+                  icon: Icon(
+                    sortIcon,
+                  ), // El icono ahora depende de currentOrderBy
+                  onPressed: () {
+                    _updateSortOrder(); // Actualiza el notifier y relanza búsqueda
+                  },
+                ),
+              );
             },
           ),
-        )
-      else
-        const SizedBox.shrink(),
+        ),
+
+      // ----------------------------------------------------
+      StreamBuilder(
+        initialData: false,
+        stream: isLoadingStream.stream,
+        builder: (builderContext, snapshot) {
+          if (snapshot.hasData && snapshot.data!) {
+            return SpinPerfect(
+              duration: const Duration(seconds: 1),
+              spins: 20,
+              infinite: true,
+              child: IconButton(
+                icon: const Icon(Icons.refresh_rounded),
+                onPressed: () {
+                  query = '';
+                  ProviderScope.containerOf(
+                    context,
+                    listen: false,
+                  ).read(searchQueryProvider.notifier).updateSearchQuery('');
+                  _handleQueryChange('');
+                  showSuggestions(
+                    context,
+                  ); // Aún necesario para limpiar sugerencias
+                },
+              ),
+            );
+          }
+          return FadeIn(
+            animate: true,
+            duration: const Duration(milliseconds: 200),
+            child: IconButton(
+              icon: const Icon(Icons.clear),
+              onPressed: () {
+                query = '';
+                ProviderScope.containerOf(
+                  context,
+                  listen: false,
+                ).read(searchQueryProvider.notifier).updateSearchQuery('');
+                _handleQueryChange('');
+                showSuggestions(
+                  context,
+                ); // Aún necesario para limpiar sugerencias
+              },
+            ),
+          ); // Si no está cargando, no muestra nada
+        },
+      ),
     ];
   }
 
@@ -264,14 +352,14 @@ class _MovieItem extends StatelessWidget {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(10), // Reducido un poco
                     child:
-                        movie.posterPath == 'no-poster'
+                        (movie.posterPath == 'no-poster')
                             ? Image.asset(
                               'assets/images/no_poster.jpg',
                               fit: BoxFit.cover,
                               height: size.width * 0.2 * 1.5,
                             ) // Darle altura
                             : Image.network(
-                              movie.posterPath,
+                              movie.posterPath!,
                               height:
                                   size.width *
                                   0.2 *

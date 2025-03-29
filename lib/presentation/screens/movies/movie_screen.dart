@@ -75,14 +75,21 @@ class _CustomSliverAppBar extends StatelessWidget {
         background: Stack(
           children: [
             SizedBox.expand(
-              child: Image.network(
-                movie.posterPath,
-                fit: BoxFit.cover,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return FadeIn(child: child);
-                  return const Center(child: CircularProgressIndicator());
-                },
-              ),
+              child:
+                  (movie.posterPath != null)
+                      ? Image.network(
+                        movie.posterPath!,
+                        fit: BoxFit.cover,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) {
+                            return FadeIn(child: child);
+                          }
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        },
+                      )
+                      : SizedBox.expand(),
             ),
             SizedBox.expand(
               child: DecoratedBox(
@@ -136,12 +143,15 @@ class _MovieDetails extends StatelessWidget {
               // Image
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  movie.posterPath,
-                  width: size.width * 0.3,
-                  height: size.height * 0.3,
-                  fit: BoxFit.cover,
-                ),
+                child:
+                    (movie.posterPath != null)
+                        ? Image.network(
+                          movie.posterPath!,
+                          width: size.width * 0.3,
+                          height: size.height * 0.3,
+                          fit: BoxFit.cover,
+                        )
+                        : SizedBox.expand(),
               ),
               const SizedBox(width: 10),
 

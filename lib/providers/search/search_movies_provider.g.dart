@@ -23,7 +23,7 @@ final searchQueryProvider =
     );
 
 typedef _$SearchQuery = AutoDisposeNotifier<String>;
-String _$searchedMoviesHash() => r'2180cd91fb35c975d3d7ce7aec1aeb0c3365f47c';
+String _$searchedMoviesHash() => r'c32f9349ed6462ed2d25fb026729a60fe22851f8';
 
 /// See also [SearchedMovies].
 @ProviderFor(SearchedMovies)
