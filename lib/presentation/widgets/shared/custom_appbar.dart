@@ -1,6 +1,5 @@
 import 'package:cinemapedia/domain/entities/movie.dart';
 import 'package:cinemapedia/presentation/delegates/search_movie_delegate.dart';
-import 'package:cinemapedia/providers/movies/movies_repository_provider.dart';
 import 'package:cinemapedia/providers/search/search_movies_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,20 +30,15 @@ class CustomAppbar extends ConsumerWidget {
               // Search Icon Button
               IconButton(
                 onPressed: () {
-                  final moviesRepositoryNotifier = ref.read(
-                    moviesRepositoryNotifierProvider,
-                  );
-
-                  // Lee el ÚLTIMO query guardado desde el provider JUSTO ANTES de mostrar
-                  // Es mejor usar ref.read aquí porque solo necesitas el valor actual al presionar
+                  final searchedMovies = ref.read(searchedMoviesProvider);
                   final lastSearchQuery = ref.read(searchQueryProvider);
-
-                  // Crea el delegate, pasando la función y el query inicial
-                  // Es bueno pasar initialQuery al delegate por si lo usas internamente,
-                  // aunque el parámetro 'query' de showSearch controlará el texto inicial.
                   final searchDelegate = SearchMovieDelegate(
-                    searchMovie: moviesRepositoryNotifier.searchMovies,
+                    searchMovie:
+                        ref
+                            .read(searchedMoviesProvider.notifier)
+                            .searchMoviesByQuery,
                     initialQuery: lastSearchQuery,
+                    initialMovies: searchedMovies,
                   );
 
                   showSearch<Movie?>(

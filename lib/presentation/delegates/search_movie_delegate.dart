@@ -11,120 +11,114 @@ typedef SearchMovieCallback = Future<List<Movie>> Function(String query);
 class SearchMovieDelegate extends SearchDelegate<Movie?> {
   final SearchMovieCallback searchMovie;
   final String initialQuery;
+  final List<Movie> initialMovies;
+
+  final StreamController<List<Movie>> debouncedMovies =
+      StreamController.broadcast();
+  Timer? _debounceTimer;
+  final String _originalInitialQuery;
+
+  // Flag para saber si el usuario ya ha modificado el query inicial
+  bool _queryManuallyChanged = false;
 
   @override
   get searchFieldLabel => 'Buscar película';
 
-  // @override
-  // TextStyle get searchFieldStyle =>
-  //     TextStyle(color: Colors.white, fontSize: 18);
-
-  // @override
-  // ThemeData appBarTheme(BuildContext context) {
-  //   final ThemeData theme = Theme.of(context);
-  //   return theme.copyWith(
-  //     // Personaliza colores, etc. del AppBar de búsqueda
-  //     appBarTheme: AppBarTheme(
-  //       backgroundColor: Colors.black,
-  //       iconTheme: IconThemeData(
-  //         color: Colors.white,
-  //       ), // Color del botón de regreso (leading)
-  //       actionsIconTheme: IconThemeData(
-  //         color: Colors.white,
-  //       ), // Color de otros íconos en el AppBar
-  //     ),
-  //     // Personaliza el estilo del texto del campo de búsqueda
-  //     inputDecorationTheme:
-  //         searchFieldDecorationTheme ??
-  //         InputDecorationTheme(
-  //           hintStyle: TextStyle(
-  //             color: Colors.white70,
-  //           ), // Color del texto de sugerencia
-  //           fillColor: Colors.black87, // Color de fondo del campo de búsqueda
-  //           filled: true,
-  //           border: InputBorder.none, // Sin bordes visibles
-  //           contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-  //           suffixIconColor:
-  //               Colors.white, // Color del botón de limpiar (ícono "x")
-  //         ),
-  //     // Asegúrate de que el texto y los iconos sean visibles
-  //     primaryColor: Colors.white, // Color para iconos y texto del AppBar
-  //   );
-  // }
-
-  // Utilizamos un StreamController ya que queremos implementar un StreamBuilder, pues con un FutureBuilder
-  // se estarían lanzado peticiones por cada letra que se presiones y queremos reducir el numero de peticiones a la API
-  StreamController<List<Movie>> debouncedMovies =
-      StreamController.broadcast(); // Se utiliza broadcast para que varios widgets puedan escuchar el stream
-
-  Timer? _debounceTimer;
-
-  SearchMovieDelegate({required this.searchMovie, this.initialQuery = ''}) {
+  SearchMovieDelegate({
+    required this.searchMovie,
+    required this.initialMovies,
+    this.initialQuery = '',
+  }) : _originalInitialQuery = initialQuery {
     query = initialQuery;
 
-    // Lanza la primera búsqueda si initialQuery no está vacío
-    // Esto poblará el stream inicial si es necesario.
-    // Nota: _onQueryChanged ya maneja el caso de query vacío.
-    _onQueryChanged(query);
+    // ¡IMPORTANTE! Añade los datos iniciales al stream INMEDIATAMENTE.
+    // Esto es crucial para que el StreamBuilder los tenga lo antes posible.
+    if (initialQuery.isNotEmpty && initialMovies.isNotEmpty) {
+      debouncedMovies.add(initialMovies);
+    } else {
+      // Si no hay datos válidos o el query es vacío, empieza con vacío.
+      debouncedMovies.add([]);
+    }
+    // Al inicio, el query no ha sido cambiado manualmente.
+    _queryManuallyChanged = false;
   }
 
   void clearStreams() {
+    _debounceTimer?.cancel();
     debouncedMovies.close();
   }
 
-  void _onQueryChanged(String query) {
-    // Si el texto está vacío, cancelamos la búsqueda y limpiamos la lista
-    if (query.isEmpty) {
-      debouncedMovies.add(
-        [],
-      ); //  Inmediatamente añade una lista vacía al stream builder
-      _debounceTimer
-          ?.cancel(); // Cancela cualquier temporizador pendiente. No queremos realizar una búsqueda si el campo está vacío.
+  void _handleQueryChange(String currentQuery) {
+    _debounceTimer?.cancel();
+    if (debouncedMovies.isClosed) return;
+
+    // Si el query se limpió
+    if (currentQuery.isEmpty) {
+      debouncedMovies.add([]);
       return;
     }
 
-    _debounceTimer
-        ?.cancel(); // Cada vez que la persona escribe el Timer (de 500 milisegundos definidos abajo) se reinicia. Si ya existía un temporizador en ejecución (porque el usuario escribió algo hace menos de 500ms), se cancela. Esto evita que se disparen búsquedas por cada letra tecleada rápidamente.
-
-    // Cuando la persona deja de escribir es que se lanza la petición a la API
+    // Inicia el debounce SOLO si el query se considera "activo" para búsqueda
     _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
-      final movies = await searchMovie(query);
-      debouncedMovies.add(movies);
+      if (debouncedMovies.isClosed) return;
+
+      try {
+        final movies = await searchMovie(currentQuery);
+        if (!debouncedMovies.isClosed) debouncedMovies.add(movies);
+      } catch (e) {
+        if (!debouncedMovies.isClosed) debouncedMovies.addError(e);
+      }
     });
+  }
+
+  // Sobrescribimos 'query' setter para detectar cambios manuales
+  @override
+  set query(String value) {
+    // Si el valor nuevo es DIFERENTE del que teníamos antes de esta asignación
+    // Y diferente del original, marcamos que el usuario cambió el texto.
+    if (super.query != value && value != _originalInitialQuery) {
+      _queryManuallyChanged = true;
+    } else if (super.query != value &&
+        value == _originalInitialQuery &&
+        initialMovies.isEmpty) {
+      // Si vuelve al query original pero no teníamos initialMovies, también cuenta como cambio activo
+      _queryManuallyChanged = true;
+    }
+    super.query = value;
+    // No llamamos a _handleQueryChange aquí directamente para evitar TANTAS llamadas, buildSuggestions se encargará.
   }
 
   @override
   List<Widget> buildActions(BuildContext context) {
     return [
-      FadeIn(
-        animate: query.isNotEmpty,
-        child: IconButton(
-          icon: Icon(Icons.clear),
-          onPressed: () {
-            // 1. Limpia el query interno del delegate
-            query = '';
-
-            // 2. Actualiza el provider global (opcional pero bueno si quieres que se borre globalmente)
-            ProviderScope.containerOf(
-              context,
-              listen: false,
-            ).read(searchQueryProvider.notifier).updateSearchQuery('');
-
-            // 3. Llama a _onQueryChanged con el query vacío.
-            //    Esto asegurará que el stream reciba una lista vacía
-            //    y el debounce se maneje correctamente si el usuario
-            //    vuelve a escribir rápido.
-            _onQueryChanged('');
-          },
-        ),
-      ),
+      if (query.isNotEmpty)
+        FadeIn(
+          animate: true,
+          duration: const Duration(milliseconds: 200),
+          child: IconButton(
+            icon: const Icon(Icons.clear),
+            onPressed: () {
+              query =
+                  ''; // Esto llamará al setter y actualizará _queryManuallyChanged si es necesario
+              ProviderScope.containerOf(
+                context,
+                listen: false,
+              ).read(searchQueryProvider.notifier).updateSearchQuery('');
+              _handleQueryChange(''); // Limpia el stream explícitamente
+              // Forzar rebuild de sugerencias
+              showSuggestions(context);
+            },
+          ),
+        )
+      else
+        const SizedBox.shrink(),
     ];
   }
 
   @override
   Widget buildLeading(BuildContext context) {
     return IconButton(
-      icon: Icon(Icons.arrow_back_ios_new_rounded),
+      icon: const Icon(Icons.arrow_back_ios_new_rounded),
       onPressed: () {
         clearStreams();
         close(context, null);
@@ -134,84 +128,115 @@ class SearchMovieDelegate extends SearchDelegate<Movie?> {
 
   @override
   Widget buildResults(BuildContext context) {
-    _onQueryChanged(query);
-    return buildResultsAndSuggestions();
+    // Cuando se envían resultados, SIEMPRE queremos la búsqueda más reciente.
+    _handleQueryChange(query);
+    return _buildSearchResultsView();
   }
 
   @override
   Widget buildSuggestions(BuildContext context) {
-    // Llama a _onQueryChanged siempre que se reconstruyan las sugerencias.
-    // El debounce interno se encargará de gestionar las llamadas API.
-    _onQueryChanged(query);
+    // --- LÓGICA DE CONTROL PARA LA BÚSQUEDA ---
+    // ¿Cuándo debemos iniciar el debounce/búsqueda?
+    // 1. Si el query fue cambiado manualmente por el usuario.
+    // 2. O si el query actual NO es el original con el que empezamos.
+    // 3. O si es el original, PERO NO teníamos películas iniciales (forzando búsqueda inicial).
+    final bool shouldTriggerSearch =
+        _queryManuallyChanged ||
+        query != _originalInitialQuery ||
+        (query == _originalInitialQuery && initialMovies.isEmpty);
 
-    // El StreamBuilder se encarga de mostrar los resultados actuales del stream
-    return buildResultsAndSuggestions();
+    if (shouldTriggerSearch && query.isNotEmpty) {
+      // Solo llama a handleQueryChange si realmente necesitamos buscar/debounce.
+      _handleQueryChange(query);
+    } else if (query.isEmpty) {
+      // Si el query está vacío, asegúrate de que el stream esté limpio.
+      _handleQueryChange('');
+    }
+    // Si no se cumple shouldTriggerSearch (estamos en el query inicial con datos ya cargados),
+    // NO llamamos a _handleQueryChange, permitiendo que el StreamBuilder muestre
+    // los datos añadidos por el constructor o `initialData`.
+
+    return _buildSearchResultsView();
   }
 
-  Widget buildResultsAndSuggestions() {
-    return StreamBuilder(
-      // Mejor que un FutureBuilder, ya que un FutureBuilder lanza peticiones por cada tecla pulsada
+  Widget _buildSearchResultsView() {
+    return StreamBuilder<List<Movie>>(
       stream: debouncedMovies.stream,
+      initialData:
+          (query == _originalInitialQuery && !_queryManuallyChanged)
+              ? initialMovies
+              : null,
       builder: (context, snapshot) {
-        // Si el query está vacío y no hay datos (o están vacíos), mostramos un contenedor vacio.
-        if (query.isEmpty && (!snapshot.hasData || snapshot.data!.isEmpty)) {
-          return Container();
+        List<Movie> moviesToShow = [];
+        if (snapshot.hasData) {
+          moviesToShow = snapshot.data!;
+        } else if (snapshot.connectionState != ConnectionState.waiting &&
+            query == _originalInitialQuery &&
+            initialMovies.isNotEmpty &&
+            !_queryManuallyChanged) {
+          moviesToShow = initialMovies;
         }
 
-        // Muestra el indicador solo si estamos esperando y hay una búsqueda activa
+        // Query vacío
+        if (query.isEmpty) {
+          return const Center(
+            child: Icon(
+              Icons.movie_creation_outlined,
+              size: 100,
+              color: Colors.black38,
+            ),
+          );
+        }
+
+        final bool isInitialStateWithExpectedData =
+            query == _originalInitialQuery &&
+            initialMovies.isNotEmpty &&
+            !_queryManuallyChanged;
+
         if (snapshot.connectionState == ConnectionState.waiting &&
-            query.isNotEmpty) {
-          return const Center(child: CircularProgressIndicator());
+            moviesToShow.isEmpty &&
+            !isInitialStateWithExpectedData) {
+          // Muestra spinner solo si estamos esperando, no hay datos AÚN, Y NO es el estado inicial manejado por initialData
+          return const Center(child: CircularProgressIndicator(strokeWidth: 2));
         }
 
-        if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        }
-
-        // Si no hay datos o la lista está vacía (y el query no está vacío), ndica que no hay resultados.
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          if (query.isEmpty) return Container(); // Ya manejado arriba
+        // ... (Sin Resultados y Mostrar Lista igual que antes) ...
+        if (moviesToShow.isEmpty &&
+            snapshot.connectionState != ConnectionState.waiting) {
           return Center(
             child: Text('No se encontraron resultados para "$query"'),
           );
         }
+        return _buildMovieList(moviesToShow);
+      },
+    );
+  }
 
-        final List<Movie> movies = snapshot.data as List<Movie>;
-
-        return ListView.separated(
-          itemCount: movies.length,
-          itemBuilder: (context, index) {
-            final movie = movies[index];
-            return _MovieItem(
-              movie: movie,
-              onMovieSelected: (context, movie) {
-                // Guardamos el query actual ANTES de cerrar
-                // Es buena idea hacerlo aquí también por si acaso.
-                final container = ProviderScope.containerOf(
-                  context,
-                  listen: false,
-                );
-                container
-                    .read(searchQueryProvider.notifier)
-                    .updateSearchQuery(query);
-                clearStreams();
-                close(context, movie);
-              },
-            );
-          },
-          separatorBuilder: (context, index) {
-            return Divider(
-              color: Colors.grey[300], // Color gris claro
-              thickness: 1.0, // Grosor de la línea
-              height: 1.0, // Espaciado vertical alrededor del separador
-            );
+  // Helper para construir la lista (sin cambios)
+  Widget _buildMovieList(List<Movie> movies) {
+    return ListView.separated(
+      itemCount: movies.length,
+      itemBuilder: (context, index) {
+        final movie = movies[index];
+        return _MovieItem(
+          movie: movie,
+          onMovieSelected: (context, selectedMovie) {
+            final container = ProviderScope.containerOf(context, listen: false);
+            container
+                .read(searchQueryProvider.notifier)
+                .updateSearchQuery(query);
+            clearStreams();
+            close(context, selectedMovie);
           },
         );
       },
+      separatorBuilder: (context, index) => const Divider(height: 1),
     );
   }
 }
 
+// --- _MovieItem sin cambios ---
+// ... (pega aquí tu widget _MovieItem)
 class _MovieItem extends StatelessWidget {
   final Movie movie;
   final Function onMovieSelected;
@@ -237,28 +262,56 @@ class _MovieItem extends StatelessWidget {
                 children: [
                   // Poster
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(10), // Reducido un poco
                     child:
                         movie.posterPath == 'no-poster'
                             ? Image.asset(
                               'assets/images/no_poster.jpg',
                               fit: BoxFit.cover,
-                            )
+                              height: size.width * 0.2 * 1.5,
+                            ) // Darle altura
                             : Image.network(
                               movie.posterPath,
-                              loadingBuilder:
-                                  (context, child, loadingProgress) =>
-                                      FadeIn(child: child),
+                              height:
+                                  size.width *
+                                  0.2 *
+                                  1.5, // Darle altura consistente
+                              fit: BoxFit.cover,
+                              loadingBuilder: (
+                                context,
+                                child,
+                                loadingProgress,
+                              ) {
+                                if (loadingProgress == null) {
+                                  return FadeIn(child: child);
+                                }
+                                return Container(
+                                  height: size.width * 0.2 * 1.5,
+                                  color: Colors.grey[300],
+                                  child: const Center(
+                                    child: Icon(Icons.image_outlined),
+                                  ),
+                                );
+                              },
+                              errorBuilder:
+                                  (_, __, ___) => Container(
+                                    height: size.width * 0.2 * 1.5,
+                                    color: Colors.grey[300],
+                                    child: const Center(
+                                      child: Icon(Icons.broken_image_outlined),
+                                    ),
+                                  ),
                             ),
                   ),
-
-                  // Release Date
+                  const SizedBox(height: 3),
+                  // Release Year (más conciso)
                   Text(
-                    '${movie.releaseDate?.year ?? "No disponible"}',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontWeight: FontWeight.bold,
+                    movie.releaseDate?.year.toString() ?? "N/A",
+                    style: textStyle.bodySmall?.copyWith(
+                      color: Colors.grey[700],
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
@@ -266,40 +319,60 @@ class _MovieItem extends StatelessWidget {
 
             const SizedBox(width: 10),
 
-            // Descrition
-            SizedBox(
-              width: size.width * 0.7,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(movie.title, style: textStyle.titleMedium),
-
-                  // Overview
-                  (movie.overview.length > 100)
-                      ? Text(
-                        '${movie.overview.substring(0, 100)}...',
-                        style: textStyle.titleSmall,
-                      )
-                      : Text(movie.overview, style: textStyle.titleSmall),
-
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.star_half_rounded,
-                        color: Colors.yellow.shade800,
-                      ),
-                      Text(
-                        HumanFormats.humanReadbleNumber(
-                          movie.voteAverage,
-                          decimalDigits: 1,
-                        ),
-                        style: textStyle.bodyMedium!.copyWith(
+            // Description
+            Expanded(
+              // Usa Expanded para que ocupe el resto del espacio
+              child: SizedBox(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      movie.title,
+                      style: textStyle.titleMedium,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                    // Overview
+                    Text(
+                      movie.overview.isNotEmpty
+                          ? movie.overview
+                          : 'Sin descripción disponible.',
+                      maxLines: 3, // Limita las líneas de overview
+                      overflow: TextOverflow.ellipsis,
+                      style: textStyle.bodySmall,
+                    ),
+                    const SizedBox(height: 5),
+                    // Rating
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.star_rounded,
                           color: Colors.yellow.shade800,
+                          size: 18,
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                        const SizedBox(width: 3),
+                        Text(
+                          HumanFormats.humanReadbleNumber(
+                            movie.voteAverage,
+                            decimalDigits: 1,
+                          ),
+                          style: textStyle.bodyMedium!.copyWith(
+                            color: Colors.yellow.shade900,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Spacer(), // Empuja el texto de popularidad a la derecha
+                        Text(
+                          'Pop: ${HumanFormats.humanReadbleNumber(movie.popularity)}',
+                          style: textStyle.bodySmall?.copyWith(
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

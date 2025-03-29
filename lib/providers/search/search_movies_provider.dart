@@ -1,4 +1,5 @@
 import 'package:cinemapedia/domain/entities/movie.dart';
+import 'package:cinemapedia/providers/movies/movies_repository_provider.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'search_movies_provider.g.dart';
@@ -17,6 +18,14 @@ class SearchQuery extends _$SearchQuery {
 class SearchedMovies extends _$SearchedMovies {
   @override
   List<Movie> build() => [];
+
+  Future<List<Movie>> searchMoviesByQuery(String query) async {
+    final moviesRepositoryNotifier = ref.read(moviesRepositoryNotifierProvider);
+
+    List<Movie> movies = await moviesRepositoryNotifier.searchMovies(query);
+    state = movies;
+    return movies;
+  }
 
   void updateLastSearchedMovies(List<Movie> movies) {
     state = movies; // state = [...state, query];
