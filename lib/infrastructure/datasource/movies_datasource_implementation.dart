@@ -1,4 +1,7 @@
+import 'package:cinemapedia/domain/entities/video.dart';
+import 'package:cinemapedia/infrastructure/mappers/video_mapper.dart';
 import 'package:cinemapedia/infrastructure/models/moviedb/movie_details.dart';
+import 'package:cinemapedia/infrastructure/models/moviedb/videos_response.dart';
 import 'package:dio/dio.dart';
 import 'package:cinemapedia/config/constants/environment.dart';
 import 'package:cinemapedia/domain/datasources/movies_datasource.dart';
@@ -90,27 +93,14 @@ class MoviesDatasourceImplementation extends MoviesDatasource {
   @override
   Future<Movie> getMovieDetail(String movieId) async {
     try {
-      // Añadir try-catch para manejo de errores de red/status code
       final response = await dio.get('/movie/$movieId');
 
       // Verifica el status code primero
       if (response.statusCode != 200) {
-        print(
-          'Error en respuesta para $movieId: Status Code ${response.statusCode}',
-        );
-        print(
-          'Response Body: ${response.data}',
-        ); // Imprime aunque falle el status
         throw Exception(
           'Movie with id: $movieId not found (Status: ${response.statusCode})',
         );
       }
-
-      // --- ¡IMPRIME AQUÍ! ---
-      print('--- RAW JSON Response for Movie ID: $movieId ---');
-      print(response.data); // Imprime el mapa completo
-      print('-----------------------------------------------');
-      // ---------------------
 
       // Ahora intenta parsear
       final movieDB = MovieDetails.fromJson(response.data);
@@ -118,17 +108,8 @@ class MoviesDatasourceImplementation extends MoviesDatasource {
       return movie;
     } catch (e) {
       // Captura otros errores (dio, parsing, etc.)
-      print('Error fetching/parsing movie detail for $movieId: $e');
-      // Decide si quieres relanzar el error o devolver un valor por defecto/error
       throw Exception('Failed to get movie detail for $movieId: $e');
     }
-    // final response = await dio.get('/movie/$movieId');
-    // if (response.statusCode != 200) {
-    //   throw Exception('Movie with id: $movieId not found');
-    // }
-    // final movieDB = MovieDetails.fromJson(response.data);
-    // final movie = MovieMapper.movieDbDetailToEntity(movieDB);
-    // return movie;
   }
 
   @override
@@ -140,7 +121,6 @@ class MoviesDatasourceImplementation extends MoviesDatasource {
         '/search/movie',
         queryParameters: {'query': query},
       );
-      // return _jsonToMovies(response.data);
 
       // 1. Obtener la lista de películas de la respuesta
       final List<Movie> movies = _jsonToMovies(response.data);
@@ -167,6 +147,36 @@ class MoviesDatasourceImplementation extends MoviesDatasource {
       return movies;
     } catch (e) {
       return [];
+    }
+  }
+
+  @override
+  Future<List<Video>> getMovieVideo(String movieId) async {
+    try {
+      final response = await dio.get('/movie/$movieId/videos');
+      if (response.statusCode != 200) {
+        throw Exception('Failed to load videos for movie: $movieId');
+      }
+      final videoResponse = VideosResponse.fromJson(response.data);
+      final List<Video> videos =
+          videoResponse.results
+              .where(
+                (videoResult) =>
+                    (videoResult.site == 'YouTube' &&
+                        videoResult.type == 'Trailer'),
+              )
+              .where(
+                (videoResult) =>
+                    (videoResult.key != null && videoResult.key!.isNotEmpty),
+              )
+              .map(
+                (videoResult) => VideoMapper.videoMovieDbToEntity(videoResult),
+              )
+              .toList();
+
+      return videos;
+    } catch (e) {
+      return []; // Devuelve lista vacía en caso de error
     }
   }
 }
