@@ -156,3 +156,17 @@ Es decir los repositorios permitirá cambiar facilmente cual es la fuente de dat
 Para la generacion de providers riverpod automaticamente utilizando @riverpod ejecutamos este comando en consola
 
     dart run build_runner watch
+
+
+# Error de depedencias entre Riverpod e Isar
+
+Estoy utilizando Riverpod generator (@riverpod), y tambien Isar generator (@collection). Pero al ejecutar el comando para generar los archivos: dart run build_runner build resulta que Isar tiene unas dependencias más antiguas por lo que sale un error de incompatibilidad.
+
+La solución que encontré fue desinstalar las dependencias y dev-dependencias tanto de Riverpod como de Isar eliminando (o comentando) las lineas en el pubspec.yaml y ejecutando: 
+    
+        flutter pub get
+
+Seguidamente procedí a instalarlas nuevamente pero agregandolas en la misma línea de instalación para que el sistema de resolución de dependencias encontrase una versión que satisfaciera a ambos:
+
+        flutter pub add isar isar_flutter_libs path_provider flutter_riverpod riverpod_annotation
+        flutter pub add -d isar_generator build_runner riverpod_generator custom_lint riverpod_lint

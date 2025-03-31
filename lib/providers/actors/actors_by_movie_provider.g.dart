@@ -39,13 +39,21 @@ class ActorsFamily extends Family<AsyncValue<List<Actor>>> {
   const ActorsFamily();
 
   /// See also [actors].
-  ActorsProvider call(String movieId) {
-    return ActorsProvider(movieId);
+  ActorsProvider call(
+    String movieId,
+  ) {
+    return ActorsProvider(
+      movieId,
+    );
   }
 
   @override
-  ActorsProvider getProviderOverride(covariant ActorsProvider provider) {
-    return call(provider.movieId);
+  ActorsProvider getProviderOverride(
+    covariant ActorsProvider provider,
+  ) {
+    return call(
+      provider.movieId,
+    );
   }
 
   static const Iterable<ProviderOrFamily>? _dependencies = null;
@@ -66,17 +74,23 @@ class ActorsFamily extends Family<AsyncValue<List<Actor>>> {
 /// See also [actors].
 class ActorsProvider extends AutoDisposeFutureProvider<List<Actor>> {
   /// See also [actors].
-  ActorsProvider(String movieId)
-    : this._internal(
-        (ref) => actors(ref as ActorsRef, movieId),
-        from: actorsProvider,
-        name: r'actorsProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product') ? null : _$actorsHash,
-        dependencies: ActorsFamily._dependencies,
-        allTransitiveDependencies: ActorsFamily._allTransitiveDependencies,
-        movieId: movieId,
-      );
+  ActorsProvider(
+    String movieId,
+  ) : this._internal(
+          (ref) => actors(
+            ref as ActorsRef,
+            movieId,
+          ),
+          from: actorsProvider,
+          name: r'actorsProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$actorsHash,
+          dependencies: ActorsFamily._dependencies,
+          allTransitiveDependencies: ActorsFamily._allTransitiveDependencies,
+          movieId: movieId,
+        );
 
   ActorsProvider._internal(
     super._createNotifier, {
@@ -127,16 +141,13 @@ class ActorsProvider extends AutoDisposeFutureProvider<List<Actor>> {
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
 mixin ActorsRef on AutoDisposeFutureProviderRef<List<Actor>> {
   /// The parameter `movieId` of this provider.
   String get movieId;
 }
 
 class _ActorsProviderElement
-    extends AutoDisposeFutureProviderElement<List<Actor>>
-    with ActorsRef {
+    extends AutoDisposeFutureProviderElement<List<Actor>> with ActorsRef {
   _ActorsProviderElement(super.provider);
 
   @override
@@ -147,20 +158,17 @@ String _$actorsMapNotifierHash() => r'f28ca3cf8b5369a9db584f93b2e00634636cd9d4';
 
 /// See also [ActorsMapNotifier].
 @ProviderFor(ActorsMapNotifier)
-final actorsMapNotifierProvider = AutoDisposeNotifierProvider<
-  ActorsMapNotifier,
-  Map<String, List<Actor>>
->.internal(
+final actorsMapNotifierProvider = AutoDisposeNotifierProvider<ActorsMapNotifier,
+    Map<String, List<Actor>>>.internal(
   ActorsMapNotifier.new,
   name: r'actorsMapNotifierProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$actorsMapNotifierHash,
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$actorsMapNotifierHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
 typedef _$ActorsMapNotifier = AutoDisposeNotifier<Map<String, List<Actor>>>;
 // ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

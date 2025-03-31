@@ -12,20 +12,17 @@ String _$moviesRepositoryNotifierHash() =>
 /// See also [MoviesRepositoryNotifier].
 @ProviderFor(MoviesRepositoryNotifier)
 final moviesRepositoryNotifierProvider = AutoDisposeNotifierProvider<
-  MoviesRepositoryNotifier,
-  MoviesRepositoryImplementation
->.internal(
+    MoviesRepositoryNotifier, MoviesRepositoryImplementation>.internal(
   MoviesRepositoryNotifier.new,
   name: r'moviesRepositoryNotifierProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product')
-          ? null
-          : _$moviesRepositoryNotifierHash,
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$moviesRepositoryNotifierHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef _$MoviesRepositoryNotifier =
-    AutoDisposeNotifier<MoviesRepositoryImplementation>;
+typedef _$MoviesRepositoryNotifier
+    = AutoDisposeNotifier<MoviesRepositoryImplementation>;
 // ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

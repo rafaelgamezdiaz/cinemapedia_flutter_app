@@ -39,15 +39,21 @@ class MovieDetailFamily extends Family<AsyncValue<Movie>> {
   const MovieDetailFamily();
 
   /// See also [movieDetail].
-  MovieDetailProvider call(String movieId) {
-    return MovieDetailProvider(movieId);
+  MovieDetailProvider call(
+    String movieId,
+  ) {
+    return MovieDetailProvider(
+      movieId,
+    );
   }
 
   @override
   MovieDetailProvider getProviderOverride(
     covariant MovieDetailProvider provider,
   ) {
-    return call(provider.movieId);
+    return call(
+      provider.movieId,
+    );
   }
 
   static const Iterable<ProviderOrFamily>? _dependencies = null;
@@ -68,19 +74,24 @@ class MovieDetailFamily extends Family<AsyncValue<Movie>> {
 /// See also [movieDetail].
 class MovieDetailProvider extends AutoDisposeFutureProvider<Movie> {
   /// See also [movieDetail].
-  MovieDetailProvider(String movieId)
-    : this._internal(
-        (ref) => movieDetail(ref as MovieDetailRef, movieId),
-        from: movieDetailProvider,
-        name: r'movieDetailProvider',
-        debugGetCreateSourceHash:
-            const bool.fromEnvironment('dart.vm.product')
-                ? null
-                : _$movieDetailHash,
-        dependencies: MovieDetailFamily._dependencies,
-        allTransitiveDependencies: MovieDetailFamily._allTransitiveDependencies,
-        movieId: movieId,
-      );
+  MovieDetailProvider(
+    String movieId,
+  ) : this._internal(
+          (ref) => movieDetail(
+            ref as MovieDetailRef,
+            movieId,
+          ),
+          from: movieDetailProvider,
+          name: r'movieDetailProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$movieDetailHash,
+          dependencies: MovieDetailFamily._dependencies,
+          allTransitiveDependencies:
+              MovieDetailFamily._allTransitiveDependencies,
+          movieId: movieId,
+        );
 
   MovieDetailProvider._internal(
     super._createNotifier, {
@@ -131,16 +142,13 @@ class MovieDetailProvider extends AutoDisposeFutureProvider<Movie> {
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
 mixin MovieDetailRef on AutoDisposeFutureProviderRef<Movie> {
   /// The parameter `movieId` of this provider.
   String get movieId;
 }
 
 class _MovieDetailProviderElement
-    extends AutoDisposeFutureProviderElement<Movie>
-    with MovieDetailRef {
+    extends AutoDisposeFutureProviderElement<Movie> with MovieDetailRef {
   _MovieDetailProviderElement(super.provider);
 
   @override
@@ -153,16 +161,15 @@ String _$movieMapNotifierHash() => r'2d298d85e7e5dbecb70f203fd1450915d65a8158';
 @ProviderFor(MovieMapNotifier)
 final movieMapNotifierProvider =
     AutoDisposeNotifierProvider<MovieMapNotifier, Map<String, Movie>>.internal(
-      MovieMapNotifier.new,
-      name: r'movieMapNotifierProvider',
-      debugGetCreateSourceHash:
-          const bool.fromEnvironment('dart.vm.product')
-              ? null
-              : _$movieMapNotifierHash,
-      dependencies: null,
-      allTransitiveDependencies: null,
-    );
+  MovieMapNotifier.new,
+  name: r'movieMapNotifierProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$movieMapNotifierHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
 
 typedef _$MovieMapNotifier = AutoDisposeNotifier<Map<String, Movie>>;
 // ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

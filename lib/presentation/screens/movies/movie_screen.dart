@@ -2,6 +2,7 @@ import 'package:animate_do/animate_do.dart';
 import 'package:cinemapedia/domain/entities/movie.dart';
 import 'package:cinemapedia/providers/movies/movie_detail_provider.dart';
 import 'package:cinemapedia/providers/providers.dart';
+import 'package:cinemapedia/providers/storage/local_storage_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -43,25 +44,32 @@ class MovieScreenState extends ConsumerState<MovieScreen> {
   }
 }
 
-class _CustomSliverAppBar extends StatelessWidget {
+class _CustomSliverAppBar extends ConsumerWidget {
   final Movie movie;
 
   const _CustomSliverAppBar({required this.movie});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final size = MediaQuery.of(context).size;
 
     return SliverAppBar(
-      automaticallyImplyLeading: false,
       actions: [
         IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
           onPressed: () {
-            context.pop();
+            // TODO ref.watch(localStorageNotifierProvider.notifier).togleFavorite(movie);
+            // togle de favorito
           },
+          icon: Icon(Icons.favorite_border),
+          // icon: Icon(Icons.favorite_rounded, color: Colors.red),
         ),
       ],
+      leading: IconButton(
+        icon: Icon(Icons.arrow_back_ios_new_rounded),
+        onPressed: () {
+          context.pop();
+        },
+      ),
       backgroundColor: Colors.black,
       expandedHeight: size.height * 0.7,
       foregroundColor: Colors.white,
@@ -91,29 +99,24 @@ class _CustomSliverAppBar extends StatelessWidget {
                       )
                       : SizedBox.expand(),
             ),
-            SizedBox.expand(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    stops: [0.8, 1.0],
-                    colors: [Colors.transparent, Colors.black87],
-                  ),
-                ),
-              ),
+
+            _CustomGradient(
+              beginPosition: Alignment.topCenter,
+              endPosition: Alignment.bottomCenter,
+              stops: [0.9, 1.0],
+              colors: [Colors.transparent, Colors.black45],
             ),
-            SizedBox.expand(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topRight,
-                    end: Alignment.bottomLeft,
-                    stops: [0.0, 0.2],
-                    colors: [Colors.black87, Colors.transparent],
-                  ),
-                ),
-              ),
+            _CustomGradient(
+              beginPosition: Alignment.topRight,
+              endPosition: Alignment.bottomLeft,
+              stops: [0.0, 0.2],
+              colors: [Colors.black87, Colors.transparent],
+            ),
+            _CustomGradient(
+              beginPosition: Alignment.topLeft,
+              endPosition: Alignment.bottomRight,
+              stops: [0.0, 0.2],
+              colors: [Colors.black87, Colors.transparent],
             ),
           ],
         ),
@@ -267,6 +270,36 @@ class _ActorsByMovie extends ConsumerWidget {
           );
         }
       },
+    );
+  }
+}
+
+class _CustomGradient extends StatelessWidget {
+  final AlignmentGeometry beginPosition;
+  final AlignmentGeometry endPosition;
+  final List<double> stops;
+  final List<Color> colors;
+
+  const _CustomGradient({
+    required this.beginPosition,
+    required this.endPosition,
+    required this.stops,
+    required this.colors,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox.expand(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: beginPosition,
+            end: endPosition,
+            stops: stops,
+            colors: colors,
+          ),
+        ),
+      ),
     );
   }
 }
