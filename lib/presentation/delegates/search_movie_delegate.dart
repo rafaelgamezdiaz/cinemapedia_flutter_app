@@ -94,7 +94,6 @@ class SearchMovieDelegate extends SearchDelegate<Movie?> {
           debouncedMovies.add(movies);
           isLoadingStream.add(false); // Detener el loading
         }
-        ;
       } catch (e) {
         if (!debouncedMovies.isClosed) debouncedMovies.addError(e);
       }

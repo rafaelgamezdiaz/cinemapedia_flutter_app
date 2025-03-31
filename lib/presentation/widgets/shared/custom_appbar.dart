@@ -58,7 +58,7 @@ class CustomAppbar extends ConsumerWidget {
                     // Verifica si se seleccionó una película
                     if (movie == null) return;
 
-                    context.push('/movie/${movie.id}');
+                    context.push('/home/0/movie/${movie.id}');
                   });
                 },
                 icon: Icon(Icons.search),
