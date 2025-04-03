@@ -30,7 +30,7 @@ class FavoritesMoviesNotifier extends _$FavoritesMoviesNotifier {
     final localStorageProvider = ref.read(localStorageNotifierProvider);
     final List<Movie> favorites = await localStorageProvider.loadMovies(
       offset: 0, // Cargar desde el inicio
-      limit: 20,
+      limit: 10,
     );
 
     state = favorites; // Actualizar el estado con la lista completa
@@ -38,18 +38,20 @@ class FavoritesMoviesNotifier extends _$FavoritesMoviesNotifier {
     isLoading = false;
   }
 
-  Future<void> loadNextPage() async {
-    if (isLoading) return;
+  Future<List<Movie>> loadNextPage() async {
+    if (isLoading) return [];
     isLoading = true;
     final localStorageProvider = ref.read(localStorageNotifierProvider);
     final List<Movie> favorites = await localStorageProvider.loadMovies(
       offset: currentPage * 10,
-      limit: 20,
+      limit: 10,
     );
     currentPage++;
 
     state = [...state, ...favorites];
     isLoading = false;
+
+    return favorites;
   }
 
   Future<void> refreshFavorites() async {

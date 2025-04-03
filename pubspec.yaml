@@ -31,6 +31,7 @@ dependencies:
   animate_do: ^4.2.0
   card_swiper: ^3.0.1
   cupertino_icons: ^1.0.8
+  dart_style: ^2.3.2
   dio: ^5.8.0+1
   flutter:
     sdk: flutter
@@ -40,23 +41,22 @@ dependencies:
   intl: ^0.20.2
   isar: ^3.1.0+1
   isar_flutter_libs:
-    git: 
+    git:
       url: https://github.com/MrLittleWhite/isar_flutter_libs.git
   path_provider: ^2.1.5
   riverpod_annotation: ^2.6.1
   youtube_player_flutter: ^9.1.1
-  dart_style: ^2.3.2
+  flutter_staggered_grid_view: ^0.7.0
 
 dev_dependencies:
-  build_runner: ^2.4.6   # downgrade de la version que había instalado riverpod -> build_runner: ^2.4.15
+  build_runner: ^2.4.6
   custom_lint: ^0.5.11
   flutter_lints: ^5.0.0
   flutter_test:
     sdk: flutter
   isar_generator: ^3.1.0+1
-  riverpod_generator: ^2.3.3 # downgrade de la version que había instalado riverpod -> riverpod_generator: ^2.6.5 
+  riverpod_generator: ^2.3.3
   riverpod_lint: ^2.1.1
-  
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

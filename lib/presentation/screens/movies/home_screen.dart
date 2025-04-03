@@ -18,9 +18,33 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(index: pageIndex, children: viewRoutes),
-      //  backgroundColor: const Color.fromARGB(255, 75, 83, 156),
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 50), // Duración de la animación
+        transitionBuilder: (child, animation) {
+          // Aplicar un FadeTransition
+          return FadeTransition(opacity: animation, child: child);
+        },
+        child: KeyedSubtree(
+          key: ValueKey(pageIndex), // Clave única basada en el índice
+          child: viewRoutes[pageIndex],
+        ),
+      ),
+      // backgroundColor: const Color.fromARGB(255, 75, 83, 156),
       bottomNavigationBar: CustomBottomNavigation(currentIndex: pageIndex),
     );
   }
 }
+
+/* 
+AnimatedSwitcher(
+        duration: const Duration(milliseconds: 200), // Duración de la animación
+        transitionBuilder: (child, animation) {
+          // Aplicar un FadeTransition
+          return FadeTransition(opacity: animation, child: child);
+        },
+        child: KeyedSubtree(
+          key: ValueKey(pageIndex), // Clave única basada en el índice
+          child: viewRoutes[pageIndex],
+        ),
+      )
+ */

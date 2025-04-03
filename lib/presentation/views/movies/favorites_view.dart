@@ -1,3 +1,4 @@
+import 'package:cinemapedia/presentation/widgets/widgets.dart';
 import 'package:cinemapedia/providers/favorites/favorites_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +11,9 @@ class FavoritesView extends ConsumerStatefulWidget {
 }
 
 class _FavoritesViewState extends ConsumerState<FavoritesView> {
+  bool isLastPage = false;
+  bool isLoading = false;
+
   @override
   void initState() {
     super.initState();
@@ -17,25 +21,27 @@ class _FavoritesViewState extends ConsumerState<FavoritesView> {
     // Cargamos los favoritos
     // ref.read(favoritesMoviesNotifierProvider.notifier).loadInitialFavorites();
     // ref.read(favoritesMoviesNotifierProvider.notifier).loadNextPage();
+
+    loadNextPage();
+  }
+
+  void loadNextPage() async {
+    if (isLoading || isLastPage) return;
+
+    isLoading = true;
+    final movies =
+        await ref.read(favoritesMoviesNotifierProvider.notifier).loadNextPage();
+    isLoading = false;
+    if (movies.isEmpty) {
+      isLastPage = true;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final favoritos = ref.watch(favoritesMoviesNotifierProvider);
     return Scaffold(
-      body:
-          favoritos.isEmpty
-              ? Center(child: Text('No hay favoritos'))
-              : ListView.builder(
-                itemCount: favoritos.length,
-                itemBuilder: (BuildContext context, int index) {
-                  final movie = favoritos[index];
-                  return ListTile(
-                    title: Text(movie.title),
-                    leading: Image.network(movie.posterPath ?? ''),
-                  );
-                },
-              ),
+      body: MovieMasonry(loadNextPage: loadNextPage, movies: favoritos),
     );
   }
 }
