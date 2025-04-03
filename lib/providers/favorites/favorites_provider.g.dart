@@ -6,7 +6,7 @@ part of 'favorites_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$isFavoriteHash() => r'11617e8fca140ccf490e72a202f130b4901051a6';
+String _$isFavoriteHash() => r'c8ed0df8f2f285a15d5a35c4722567a71ff26d9d';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -156,12 +156,12 @@ class _IsFavoriteProviderElement extends AutoDisposeFutureProviderElement<bool>
 }
 
 String _$favoritesMoviesNotifierHash() =>
-    r'2eba07b6260f4086d0a65c3bff048dfe7d7f5b9b';
+    r'18a4b9f3f304e365724806f783f927dbd5ec1f1b';
 
 /// See also [FavoritesMoviesNotifier].
 @ProviderFor(FavoritesMoviesNotifier)
-final favoritesMoviesNotifierProvider =
-    AutoDisposeNotifierProvider<FavoritesMoviesNotifier, List<Movie>>.internal(
+final favoritesMoviesNotifierProvider = AutoDisposeAsyncNotifierProvider<
+    FavoritesMoviesNotifier, List<Movie>>.internal(
   FavoritesMoviesNotifier.new,
   name: r'favoritesMoviesNotifierProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -171,6 +171,6 @@ final favoritesMoviesNotifierProvider =
   allTransitiveDependencies: null,
 );
 
-typedef _$FavoritesMoviesNotifier = AutoDisposeNotifier<List<Movie>>;
+typedef _$FavoritesMoviesNotifier = AutoDisposeAsyncNotifier<List<Movie>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member

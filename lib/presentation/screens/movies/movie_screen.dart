@@ -56,21 +56,33 @@ class _CustomSliverAppBar extends ConsumerWidget {
     return SliverAppBar(
       actions: [
         IconButton(
+          icon: Icon(Icons.arrow_back_ios_new_rounded),
+          onPressed: () {
+            context.pop();
+          },
+        ),
+        IconButton(
           onPressed: () async {
-            await ref.read(localStorageNotifierProvider).togleFavorite(movie);
-
-            ref.invalidate(favoritesMoviesNotifierProvider);
+            // Llama al método toggleFavorite del notifier de la *lista*
+            // Este método se encarga de:
+            // 1. Llamar al repositorio para guardar/borrar en la BD.
+            // 2. Actualizar el estado (la lista) del FavoritesMoviesNotifier.
+            // 3. Invalidar isFavoriteProvider(movie.id) para actualizar el icono aquí.
+            await ref
+                .read(favoritesMoviesNotifierProvider.notifier)
+                .toggleFavorite(movie);
 
             ref.invalidate(isFavoriteProvider(movie.id));
           },
           icon: isFavoriteFuture.when(
             loading: () => CircularProgressIndicator(strokeWidth: 2),
-            data: (isFavorite) {
-              return isFavorite
-                  ? Icon(Icons.favorite_rounded, color: Colors.red)
-                  : Icon(Icons.favorite_border);
-            },
-            error: (_, __) => throw UnimplementedError(),
+            data:
+                (isFavorite) =>
+                    isFavorite
+                        ? const Icon(Icons.favorite_rounded, color: Colors.red)
+                        : const Icon(Icons.favorite_border),
+            error:
+                (_, __) => const Icon(Icons.error_outline, color: Colors.red),
           ),
         ),
       ],
@@ -84,12 +96,6 @@ class _CustomSliverAppBar extends ConsumerWidget {
       expandedHeight: size.height * 0.7,
       foregroundColor: Colors.white,
       flexibleSpace: FlexibleSpaceBar(
-        // titlePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-        // title: Text(
-        //   movie.title,
-        //   style: const TextStyle(color: Colors.white, fontSize: 18),
-        //   textAlign: TextAlign.start,
-        // ),
         background: Stack(
           children: [
             SizedBox.expand(
