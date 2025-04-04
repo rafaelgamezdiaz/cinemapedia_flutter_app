@@ -48,7 +48,6 @@ class _MovieMasonryState extends State<MovieMasonry> {
         mainAxisSpacing: 10,
         crossAxisSpacing: 10,
         scrollDirection: Axis.vertical,
-        physics: const BouncingScrollPhysics(),
         itemCount: widget.movies.length,
 
         itemBuilder: (context, index) {
