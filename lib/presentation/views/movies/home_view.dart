@@ -36,6 +36,7 @@ class HomeViewState extends ConsumerState<HomeView> {
     final topRatedMovies = ref.watch(topRatedMoviesNotifierProvider);
     final upcomingMovies = ref.watch(upcomingMoviesNotifierProvider);
     final moviesSlideShow = ref.watch(slideshowMoviesProvider);
+    final popularMovies = ref.watch(popularMoviesNotifierProvider);
 
     return CustomScrollView(
       slivers: [
@@ -48,7 +49,7 @@ class HomeViewState extends ConsumerState<HomeView> {
           delegate: SliverChildBuilderDelegate((context, index) {
             return Column(
               children: [
-                SizedBox(height: 20),
+                SizedBox(height: 15),
                 // Movies Slideshow
                 MoviesSlideshow(movies: moviesSlideShow),
 
@@ -65,6 +66,20 @@ class HomeViewState extends ConsumerState<HomeView> {
                               .read(nowPlayingMoviesNotifierProvider.notifier)
                               .loadNextPage(),
                 ),
+                SizedBox(height: 20),
+
+                // Now Playing Movies
+                MoviesHorizontalListview(
+                  movies: popularMovies,
+                  title: 'Populares',
+                  // subtitle: 'Lunes 24',
+                  loadNextPage:
+                      () =>
+                          ref
+                              .read(popularMoviesNotifierProvider.notifier)
+                              .loadNextPage(),
+                ),
+                SizedBox(height: 20),
 
                 // Top Rated Movies
                 MoviesHorizontalListview(
@@ -77,6 +92,7 @@ class HomeViewState extends ConsumerState<HomeView> {
                               .read(topRatedMoviesNotifierProvider.notifier)
                               .loadNextPage(),
                 ),
+                SizedBox(height: 20),
 
                 // Upcoming Movies
                 MoviesHorizontalListview(

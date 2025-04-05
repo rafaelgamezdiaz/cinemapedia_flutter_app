@@ -1,4 +1,4 @@
-import 'package:cinemapedia/presentation/views/movies/popular_view.dart';
+import 'package:cinemapedia/presentation/views/movies/categories_view.dart';
 import 'package:cinemapedia/presentation/widgets/widgets.dart';
 import 'package:flutter/material.dart';
 
@@ -10,7 +10,11 @@ class HomeScreen extends StatelessWidget {
 
   const HomeScreen({super.key, required this.pageIndex});
 
-  final viewRoutes = const <Widget>[HomeView(), PopularView(), FavoritesView()];
+  final viewRoutes = const <Widget>[
+    HomeView(),
+    CategoriesView(),
+    FavoritesView(),
+  ];
 
   @override
   Widget build(BuildContext context) {
