@@ -33,7 +33,6 @@ class HomeViewState extends ConsumerState<HomeView> {
 
     // Obtener listas separadas
     final nowPlayingMovies = ref.watch(nowPlayingMoviesNotifierProvider);
-    final popularMovies = ref.watch(popularMoviesNotifierProvider);
     final topRatedMovies = ref.watch(topRatedMoviesNotifierProvider);
     final upcomingMovies = ref.watch(upcomingMoviesNotifierProvider);
     final moviesSlideShow = ref.watch(slideshowMoviesProvider);
@@ -42,22 +41,24 @@ class HomeViewState extends ConsumerState<HomeView> {
       slivers: [
         SliverAppBar(
           floating: true,
+          automaticallyImplyLeading: false,
           flexibleSpace: FlexibleSpaceBar(title: CustomAppbar()),
-          backgroundColor: Colors.white,
         ),
         SliverList(
           delegate: SliverChildBuilderDelegate((context, index) {
             return Column(
               children: [
-                SizedBox(height: 10),
+                SizedBox(height: 20),
                 // Movies Slideshow
                 MoviesSlideshow(movies: moviesSlideShow),
+
+                SizedBox(height: 10),
 
                 // Now Playing Movies
                 MoviesHorizontalListview(
                   movies: nowPlayingMovies,
                   title: 'En Cines',
-                  subtitle: 'Lunes 24',
+                  // subtitle: 'Lunes 24',
                   loadNextPage:
                       () =>
                           ref
@@ -65,23 +66,11 @@ class HomeViewState extends ConsumerState<HomeView> {
                               .loadNextPage(),
                 ),
 
-                // Popular Movies
-                MoviesHorizontalListview(
-                  movies: popularMovies,
-                  title: 'Populares',
-                  // subtitle: 'Este mes',
-                  loadNextPage:
-                      () =>
-                          ref
-                              .read(popularMoviesNotifierProvider.notifier)
-                              .loadNextPage(),
-                ),
-
                 // Top Rated Movies
                 MoviesHorizontalListview(
                   movies: topRatedMovies,
                   title: 'Top Rated',
-                  subtitle: 'Eternamente',
+                  // subtitle: 'Eternamente',
                   loadNextPage:
                       () =>
                           ref
@@ -93,7 +82,7 @@ class HomeViewState extends ConsumerState<HomeView> {
                 MoviesHorizontalListview(
                   movies: upcomingMovies,
                   title: 'Próximamente',
-                  subtitle: 'En semanas',
+                  // subtitle: 'En semanas',
                   loadNextPage:
                       () =>
                           ref

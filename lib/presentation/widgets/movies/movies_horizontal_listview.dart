@@ -54,6 +54,7 @@ class _MoviesHorizontalListviewState extends State<MoviesHorizontalListview> {
         children: [
           if (widget.title != null || widget.subtitle != null)
             _Title(title: widget.title, subtitle: widget.subtitle),
+          SizedBox(height: 10),
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
@@ -84,7 +85,12 @@ class _Title extends StatelessWidget {
       margin: const EdgeInsets.only(left: 10, right: 10, top: 10),
       child: Row(
         children: [
-          if (title != null) Text(title!, style: titleStyle),
+          if (title != null)
+            FilledButton.tonal(
+              style: ButtonStyle(visualDensity: VisualDensity.compact),
+              onPressed: () {},
+              child: Text(title!, style: titleStyle),
+            ),
           const Spacer(),
           if (subtitle != null)
             FilledButton.tonal(

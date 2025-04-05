@@ -1,6 +1,7 @@
 import 'package:cinemapedia/domain/entities/movie.dart';
 import 'package:cinemapedia/presentation/delegates/search_movie_delegate.dart';
 import 'package:cinemapedia/providers/search/search_movies_provider.dart';
+import 'package:cinemapedia/providers/theme/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -12,6 +13,8 @@ class CustomAppbar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).colorScheme;
     final titleStyle = Theme.of(context).textTheme.titleMedium;
+    final brightness = ref.watch(themeNotifierProvider).brightness;
+    final isDarkMode = brightness == Brightness.dark;
 
     ref.watch(searchQueryProvider);
 
@@ -21,10 +24,23 @@ class CustomAppbar extends ConsumerWidget {
         child: SizedBox(
           width: double.infinity,
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              IconButton(
+                icon: Icon(
+                  isDarkMode
+                      ? Icons.dark_mode_outlined
+                      : Icons.light_mode_outlined,
+                  color: Colors.primaries[0],
+                ),
+                onPressed: () {
+                  ref.read(themeNotifierProvider.notifier).toggleDarkMode();
+                },
+              ),
+              Spacer(),
               Icon(Icons.movie_outlined, color: colors.primary),
               const SizedBox(width: 5),
-              Text('Cinemapedia', style: titleStyle),
+              Text('CINEMAP', style: titleStyle),
               Spacer(),
 
               // Search Icon Button
