@@ -4,11 +4,31 @@ import 'package:flutter/material.dart';
 
 import '../../views/views.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   static const name = 'home-screen';
   final int pageIndex;
 
   const HomeScreen({super.key, required this.pageIndex});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen>
+    with AutomaticKeepAliveClientMixin {
+  late PageController pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    pageController = PageController(keepPage: true);
+  }
+
+  @override
+  void dispose() {
+    pageController.dispose();
+    super.dispose();
+  }
 
   final viewRoutes = const <Widget>[
     HomeView(),
@@ -18,25 +38,48 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
+
+    if (pageController.hasClients) {
+      pageController.animateToPage(
+        widget.pageIndex,
+        curve: Curves.easeInOut,
+        duration: const Duration(milliseconds: 250),
+      );
+    }
+
     return Scaffold(
-      body: AnimatedSwitcher(
+      body: PageView(
+        physics: const NeverScrollableScrollPhysics(),
+        controller: pageController,
+        children: viewRoutes,
+      ),
+      bottomNavigationBar: CustomBottomNavigation(
+        currentIndex: widget.pageIndex,
+      ),
+    );
+  }
+
+  @override
+  bool get wantKeepAlive => true;
+}
+
+/* 
+
+AnimatedSwitcher(
         duration: const Duration(milliseconds: 50), // Duración de la animación
         transitionBuilder: (child, animation) {
           // Aplicar un FadeTransition
           return FadeTransition(opacity: animation, child: child);
         },
         child: KeyedSubtree(
-          key: ValueKey(pageIndex), // Clave única basada en el índice
-          child: viewRoutes[pageIndex],
+          key: ValueKey(widget.pageIndex), // Clave única basada en el índice
+          child: viewRoutes[widget.pageIndex],
         ),
-      ),
-      // backgroundColor: const Color.fromARGB(255, 75, 83, 156),
-      bottomNavigationBar: CustomBottomNavigation(currentIndex: pageIndex),
-    );
-  }
-}
+      )
 
-/* 
+
+
 AnimatedSwitcher(
         duration: const Duration(milliseconds: 200), // Duración de la animación
         transitionBuilder: (child, animation) {

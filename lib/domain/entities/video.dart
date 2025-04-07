@@ -4,7 +4,7 @@ class Video {
   final String name;
   final String site;
   final String type; // 'Trailer', 'Teaser', etc.
-  final bool? official; // Si es oficial o no
+  final bool official; // Si es oficial o no
 
   Video({
     required this.id,

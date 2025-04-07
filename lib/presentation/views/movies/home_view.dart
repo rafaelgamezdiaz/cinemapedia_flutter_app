@@ -11,7 +11,8 @@ class HomeView extends ConsumerStatefulWidget {
   HomeViewState createState() => HomeViewState();
 }
 
-class HomeViewState extends ConsumerState<HomeView> {
+class HomeViewState extends ConsumerState<HomeView>
+    with AutomaticKeepAliveClientMixin {
   @override
   void initState() {
     super.initState();
@@ -28,8 +29,9 @@ class HomeViewState extends ConsumerState<HomeView> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final loadingMovies = ref.watch(initialLoadingProvider);
-    if (loadingMovies) return FullScreenLoader();
+    if (loadingMovies) return const FullScreenLoader();
 
     // Obtener listas separadas
     final nowPlayingMovies = ref.watch(nowPlayingMoviesNotifierProvider);
@@ -42,7 +44,6 @@ class HomeViewState extends ConsumerState<HomeView> {
       slivers: [
         SliverAppBar(
           floating: true,
-          automaticallyImplyLeading: false,
           flexibleSpace: FlexibleSpaceBar(title: CustomAppbar()),
         ),
         SliverList(
@@ -59,7 +60,6 @@ class HomeViewState extends ConsumerState<HomeView> {
                 MoviesHorizontalListview(
                   movies: nowPlayingMovies,
                   title: 'En Cines',
-                  // subtitle: 'Lunes 24',
                   loadNextPage:
                       () =>
                           ref
@@ -72,7 +72,6 @@ class HomeViewState extends ConsumerState<HomeView> {
                 MoviesHorizontalListview(
                   movies: popularMovies,
                   title: 'Populares',
-                  // subtitle: 'Lunes 24',
                   loadNextPage:
                       () =>
                           ref
@@ -98,7 +97,6 @@ class HomeViewState extends ConsumerState<HomeView> {
                 MoviesHorizontalListview(
                   movies: upcomingMovies,
                   title: 'Próximamente',
-                  // subtitle: 'En semanas',
                   loadNextPage:
                       () =>
                           ref
@@ -107,17 +105,6 @@ class HomeViewState extends ConsumerState<HomeView> {
                 ),
 
                 SizedBox(height: 20),
-                // Expanded(
-                //   child: ListView.builder(
-                //     itemCount: nowPlayingMovies.length,
-                //     itemBuilder: (context, index) {
-                //       final movie = nowPlayingMovies[index];
-
-                //       // Mostrar la película correspondiente
-                //       return ListTile(title: Text(movie.title));
-                //     },
-                //   ),
-                // ),
               ],
             );
           }, childCount: 1),
@@ -125,4 +112,7 @@ class HomeViewState extends ConsumerState<HomeView> {
       ],
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

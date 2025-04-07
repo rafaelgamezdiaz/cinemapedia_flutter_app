@@ -13,7 +13,8 @@ class CategoriesView extends ConsumerStatefulWidget {
   CategoriesViewState createState() => CategoriesViewState();
 }
 
-class CategoriesViewState extends ConsumerState<CategoriesView> {
+class CategoriesViewState extends ConsumerState<CategoriesView>
+    with AutomaticKeepAliveClientMixin {
   @override
   void initState() {
     super.initState();
@@ -22,6 +23,7 @@ class CategoriesViewState extends ConsumerState<CategoriesView> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final loadingMovies = ref.watch(initialLoadingProvider);
     if (loadingMovies) return FullScreenLoader();
 
@@ -69,6 +71,9 @@ class CategoriesViewState extends ConsumerState<CategoriesView> {
       ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }
 
 // Widget auxiliar para encapsular la lógica de cada fila (Título + Lista Horizontal)

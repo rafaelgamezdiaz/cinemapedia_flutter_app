@@ -10,17 +10,13 @@ class FavoritesView extends ConsumerStatefulWidget {
   ConsumerState<FavoritesView> createState() => _FavoritesViewState();
 }
 
-class _FavoritesViewState extends ConsumerState<FavoritesView> {
+class _FavoritesViewState extends ConsumerState<FavoritesView>
+    with AutomaticKeepAliveClientMixin {
   bool isLastPage = false;
   bool isLoading = false;
 
   bool _isLoadingMore = false; // Para la carga de la *siguiente* página
   bool _isLastPage = false; // Para saber si ya no hay más páginas
-
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   void dispose() {
@@ -147,4 +143,7 @@ class _FavoritesViewState extends ConsumerState<FavoritesView> {
       ),
     );
   }
+
+  @override
+  bool get wantKeepAlive => true;
 }

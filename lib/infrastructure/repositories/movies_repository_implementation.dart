@@ -1,6 +1,5 @@
 import 'package:cinemapedia/domain/datasources/movies_datasource.dart';
 import 'package:cinemapedia/domain/entities/movie.dart';
-import 'package:cinemapedia/domain/entities/video.dart';
 import 'package:cinemapedia/domain/repositories/movies_repository.dart';
 
 class MoviesRepositoryImplementation extends MoviesRepository {
@@ -36,10 +35,5 @@ class MoviesRepositoryImplementation extends MoviesRepository {
   @override
   Future<List<Movie>> searchMovies(String query, String orderBy) {
     return moviesDatasource.searchMovies(query, orderBy);
-  }
-
-  @override
-  Future<List<Video>> getMovieVideos(String movieId) {
-    return moviesDatasource.getMovieVideo(movieId);
   }
 }

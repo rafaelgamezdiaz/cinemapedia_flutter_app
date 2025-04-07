@@ -1,4 +1,6 @@
+import 'package:cinemapedia/presentation/screens/movies/video_fullscreen_player.dart';
 import 'package:cinemapedia/presentation/screens/screens.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 final appRouter = GoRouter(
@@ -24,6 +26,26 @@ final appRouter = GoRouter(
           },
         ),
       ],
+    ),
+
+    GoRoute(
+      path: '/fullscreen-player/:youtubeId', // Ruta absoluta
+      name: VideoFullscreenPlayerScreen.name,
+      builder: (context, state) {
+        final youtubeId = state.pathParameters['youtubeId'] ?? 'no-id';
+
+        if (youtubeId == 'no-id') {
+          return const Scaffold(
+            body: Center(child: Text('Error: ID de video inválido')),
+          );
+        }
+
+        final startAt = state.extra as Duration? ?? Duration.zero;
+        return VideoFullscreenPlayerScreen(
+          youtubeId: youtubeId,
+          startAt: startAt,
+        );
+      },
     ),
 
     GoRoute(path: '/', redirect: (_, __) => '/home/0'),

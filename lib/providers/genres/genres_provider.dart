@@ -19,16 +19,4 @@ class Genres extends _$Genres {
     // 3. Devuelve los géneros. Riverpod manejará el estado (loading, data, error)
     return genres;
   }
-
-  // Future<List<Genre>> loadGenres() async {
-  //   final GenreRepositoryImplementation genreRepositoryImplementation =
-  //       GenreRepositoryImplementation(
-  //         genresDatasource: GenresDatasourceImplementation(),
-  //       );
-
-  //   final List<Genre> genres = await genreRepositoryImplementation.getGenres();
-
-  //   state = genres;
-  //   return genres;
-  // }
 }

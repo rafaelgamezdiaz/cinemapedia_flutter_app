@@ -1,7 +1,4 @@
-import 'package:cinemapedia/domain/entities/video.dart';
-import 'package:cinemapedia/infrastructure/mappers/video_mapper.dart';
 import 'package:cinemapedia/infrastructure/models/moviedb/movie_details.dart';
-import 'package:cinemapedia/infrastructure/models/moviedb/videos_response.dart';
 import 'package:dio/dio.dart';
 import 'package:cinemapedia/config/constants/environment.dart';
 import 'package:cinemapedia/domain/datasources/movies_datasource.dart';
@@ -147,36 +144,6 @@ class MoviesDatasourceImplementation extends MoviesDatasource {
       return movies;
     } catch (e) {
       return [];
-    }
-  }
-
-  @override
-  Future<List<Video>> getMovieVideo(String movieId) async {
-    try {
-      final response = await dio.get('/movie/$movieId/videos');
-      if (response.statusCode != 200) {
-        throw Exception('Failed to load videos for movie: $movieId');
-      }
-      final videoResponse = VideosResponse.fromJson(response.data);
-      final List<Video> videos =
-          videoResponse.results
-              .where(
-                (videoResult) =>
-                    (videoResult.site == 'YouTube' &&
-                        videoResult.type == 'Trailer'),
-              )
-              .where(
-                (videoResult) =>
-                    (videoResult.key != null && videoResult.key!.isNotEmpty),
-              )
-              .map(
-                (videoResult) => VideoMapper.videoMovieDbToEntity(videoResult),
-              )
-              .toList();
-
-      return videos;
-    } catch (e) {
-      return []; // Devuelve lista vacía en caso de error
     }
   }
 }
