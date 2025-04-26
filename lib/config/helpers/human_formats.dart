@@ -5,7 +5,7 @@ class HumanFormats {
     // Forzamos el uso del locale 'en' para asegurar las abreviaturas K, M, etc.
     final formatter = NumberFormat.compactCurrency(
       locale: 'en', // Asegura que use el formato en inglés
-      decimalDigits: 1,
+      decimalDigits: decimalDigits,
       symbol: '', // Sin símbolo de moneda
     );
     return formatter.format(number);

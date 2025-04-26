@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../providers/providers.dart';
@@ -33,6 +34,8 @@ class HomeViewState extends ConsumerState<HomeView>
     final loadingMovies = ref.watch(initialLoadingProvider);
     if (loadingMovies) return const FullScreenLoader();
 
+    FlutterNativeSplash.remove();
+
     // Obtener listas separadas
     final nowPlayingMovies = ref.watch(nowPlayingMoviesNotifierProvider);
     final topRatedMovies = ref.watch(topRatedMoviesNotifierProvider);
@@ -44,6 +47,7 @@ class HomeViewState extends ConsumerState<HomeView>
       slivers: [
         SliverAppBar(
           floating: true,
+          automaticallyImplyLeading: false,
           flexibleSpace: FlexibleSpaceBar(title: CustomAppbar()),
         ),
         SliverList(

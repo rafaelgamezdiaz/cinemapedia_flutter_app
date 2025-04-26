@@ -63,32 +63,3 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   bool get wantKeepAlive => true;
 }
-
-/* 
-
-AnimatedSwitcher(
-        duration: const Duration(milliseconds: 50), // Duración de la animación
-        transitionBuilder: (child, animation) {
-          // Aplicar un FadeTransition
-          return FadeTransition(opacity: animation, child: child);
-        },
-        child: KeyedSubtree(
-          key: ValueKey(widget.pageIndex), // Clave única basada en el índice
-          child: viewRoutes[widget.pageIndex],
-        ),
-      )
-
-
-
-AnimatedSwitcher(
-        duration: const Duration(milliseconds: 200), // Duración de la animación
-        transitionBuilder: (child, animation) {
-          // Aplicar un FadeTransition
-          return FadeTransition(opacity: animation, child: child);
-        },
-        child: KeyedSubtree(
-          key: ValueKey(pageIndex), // Clave única basada en el índice
-          child: viewRoutes[pageIndex],
-        ),
-      )
- */

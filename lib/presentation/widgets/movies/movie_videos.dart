@@ -208,7 +208,7 @@ class _YouTubeVideoPlayerState extends State<_YouTubeVideoPlayer> {
                     size: 30,
                   ),
                   style: IconButton.styleFrom(
-                    backgroundColor: Colors.black54, // Un poco más opaco
+                    backgroundColor: Colors.black, // Un poco más opaco
                     padding: const EdgeInsets.all(8),
                     shape: RoundedRectangleBorder(
                       // Bordes redondeados

@@ -178,7 +178,10 @@ class _Slide extends StatelessWidget {
                 Icon(Icons.star, size: 16, color: Colors.yellow.shade800),
                 const SizedBox(width: 4),
                 Text(
-                  movie.voteAverage.toString(),
+                  HumanFormats.humanReadbleNumber(
+                    movie.voteAverage,
+                    decimalDigits: 1,
+                  ),
                   style: textStyles.bodyMedium?.copyWith(
                     color: Colors.yellow.shade800,
                   ),

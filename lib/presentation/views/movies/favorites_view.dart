@@ -2,6 +2,7 @@ import 'package:cinemapedia/presentation/widgets/widgets.dart';
 import 'package:cinemapedia/providers/favorites/favorites_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class FavoritesView extends ConsumerStatefulWidget {
   const FavoritesView({super.key});
@@ -58,6 +59,7 @@ class _FavoritesViewState extends ConsumerState<FavoritesView>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     // Observa el estado AsyncValue del provider de la lista de favoritos
     final favoritesState = ref.watch(favoritesMoviesNotifierProvider);
 
@@ -95,23 +97,51 @@ class _FavoritesViewState extends ConsumerState<FavoritesView>
         // Estado con datos (lista de películas cargada correctamente)
         data: (favoritos) {
           if (favoritos.isEmpty) {
-            // Muestra un mensaje si no hay favoritos después de cargar
+            // // Muestra un mensaje si no hay favoritos después de cargar
+            // return Center(
+            //   child: Column(
+            //     mainAxisAlignment: MainAxisAlignment.center,
+            //     children: [
+            //       const Text('Aún no tienes películas favoritas'),
+            //       const SizedBox(height: 10),
+            //       FilledButton.icon(
+            //         // Botón para recargar por si acaso
+            //         onPressed: () {
+            //           _isLastPage = false; // Resetea
+            //           ref
+            //               .read(favoritesMoviesNotifierProvider.notifier)
+            //               .refreshFavorites();
+            //         },
+            //         icon: const Icon(Icons.refresh),
+            //         label: const Text('Recargar'),
+            //       ),
+            //     ],
+            //   ),
+            // );
+            final colors = Theme.of(context).colorScheme;
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Text('Aún no tienes películas favoritas'),
-                  const SizedBox(height: 10),
-                  FilledButton.icon(
-                    // Botón para recargar por si acaso
-                    onPressed: () {
-                      _isLastPage = false; // Resetea
-                      ref
-                          .read(favoritesMoviesNotifierProvider.notifier)
-                          .refreshFavorites();
-                    },
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Recargar'),
+                  Icon(
+                    Icons.favorite_outline_sharp,
+                    size: 60,
+                    color: colors.primary,
+                  ),
+                  Text(
+                    'Ohhh no!!',
+                    style: TextStyle(fontSize: 30, color: colors.primary),
+                  ),
+                  const Text(
+                    'No tienes películas favoritas',
+                    style: TextStyle(fontSize: 20),
+                  ),
+
+                  const SizedBox(height: 20),
+                  FilledButton.tonal(
+                    onPressed: () => context.go('/home/0'),
+                    child: const Text('Empieza a buscar'),
                   ),
                 ],
               ),

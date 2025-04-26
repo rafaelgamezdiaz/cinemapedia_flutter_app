@@ -40,7 +40,7 @@ class CustomAppbar extends ConsumerWidget {
               Spacer(),
               Icon(Icons.movie_outlined, color: colors.primary),
               const SizedBox(width: 5),
-              Text('CINEMAP', style: titleStyle),
+              Text('InfoCineX', style: titleStyle),
               Spacer(),
 
               // Search Icon Button

@@ -6,26 +6,13 @@ class CustomBottomNavigation extends StatelessWidget {
 
   const CustomBottomNavigation({super.key, required this.currentIndex});
 
-  // void _onItemTapped(BuildContext context, int index) {
-  //   switch (index) {
-  //     case 0:
-  //       context.go('/home/0');
-  //       break;
-  //     case 1:
-  //       context.go('/home/1');
-  //       break;
-  //     case 2:
-  //       context.go('/home/2');
-  //       break;
-  //   }
-  // }
-
   @override
   Widget build(BuildContext context) {
     // Obtiene el índice actual para resaltar el ítem correcto
-    // final currentIndex = getCurrentIndex(context);
     return BottomNavigationBar(
       currentIndex: currentIndex,
+      selectedItemColor: Colors.white,
+      unselectedItemColor: Colors.grey,
       onTap:
           (index) =>
               context.go('/home/$index'), // _onItemTapped(context, index),
@@ -40,3 +27,18 @@ class CustomBottomNavigation extends StatelessWidget {
     );
   }
 }
+
+
+// void _onItemTapped(BuildContext context, int index) {
+  //   switch (index) {
+  //     case 0:
+  //       context.go('/home/0');
+  //       break;
+  //     case 1:
+  //       context.go('/home/1');
+  //       break;
+  //     case 2:
+  //       context.go('/home/2');
+  //       break;
+  //   }
+  // }

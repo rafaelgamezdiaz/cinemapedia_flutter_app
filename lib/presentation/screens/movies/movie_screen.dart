@@ -1,4 +1,5 @@
 import 'package:animate_do/animate_do.dart';
+import 'package:cinemapedia/config/helpers/human_formats.dart';
 import 'package:cinemapedia/domain/entities/movie.dart';
 import 'package:cinemapedia/presentation/widgets/movies/movie_videos.dart';
 import 'package:cinemapedia/providers/movies/movie_detail_provider.dart';
@@ -56,12 +57,6 @@ class _CustomSliverAppBar extends ConsumerWidget {
 
     return SliverAppBar(
       actions: [
-        IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded),
-          onPressed: () {
-            context.pop();
-          },
-        ),
         IconButton(
           onPressed: () async {
             // Llama al método toggleFavorite del notifier de la *lista*
@@ -166,7 +161,7 @@ class _MovieDetails extends StatelessWidget {
 
         MovieVideos(movieId: movie.id),
 
-        SizedBox(height: 140),
+        SizedBox(height: 60),
       ],
     );
   }
@@ -185,23 +180,72 @@ class _TitleAndOverview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textStyles = Theme.of(context).textTheme;
+    final double popularity =
+        double.tryParse(movie.popularity.toString()) ?? 0.0;
     return Padding(
       padding: const EdgeInsets.all(8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Image
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child:
-                (movie.posterPath != null)
-                    ? Image.network(
-                      movie.posterPath!,
-                      width: size.width * 0.3,
-                      height: size.height * 0.3,
-                      fit: BoxFit.cover,
-                    )
-                    : SizedBox.expand(),
+          Column(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child:
+                    (movie.posterPath != null)
+                        ? Image.network(
+                          movie.posterPath!,
+                          width: size.width * 0.3,
+                          height: size.height * 0.3,
+                          fit: BoxFit.cover,
+                        )
+                        : SizedBox.expand(),
+              ),
+              SizedBox(
+                width: size.width * 0.3, // Ancho fijo para el Row interno
+                child: Row(
+                  children: [
+                    // Estrella y número alineados a la izquierda
+                    Row(
+                      mainAxisSize:
+                          MainAxisSize
+                              .min, // Asegura que estos widgets estén juntos
+                      children: [
+                        Icon(
+                          Icons.star,
+                          size: 16,
+                          color: Colors.yellow.shade800,
+                        ),
+                        const SizedBox(
+                          width: 4,
+                        ), // Espacio entre la estrella y el número
+
+                        Text(
+                          HumanFormats.humanReadbleNumber(
+                            movie.voteAverage,
+                            decimalDigits: 1,
+                          ),
+                          style: textStyles.bodyMedium?.copyWith(
+                            color: Colors.yellow.shade800,
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // Spacer para empujar el año a la derecha
+                    const Spacer(),
+
+                    // Año alineado a la derecha
+                    Text(
+                      HumanFormats.humanReadbleNumber(popularity),
+                      style: textStyles.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
           const SizedBox(width: 10),
 
@@ -212,7 +256,20 @@ class _TitleAndOverview extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(movie.title, style: textStyle.titleLarge),
-                Text("(${movie.originalTitle})", style: textStyle.bodySmall),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text("${movie.originalTitle} ", style: textStyle.bodySmall),
+                    Text(
+                      "(${movie.releaseDate?.year.toString()})",
+                      style: textStyle.bodySmall?.copyWith(
+                        color: Colors.grey[200],
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 10),
                 Text(movie.overview),
               ],
